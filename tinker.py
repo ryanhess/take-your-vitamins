@@ -9,14 +9,17 @@ def _():
     import marimo as mo
     import pandas as pd
 
-    df = pd.DataFrame({"A": [1, 2, 3], "B": ["a", "b", "c"]})
+    df = pd.DataFrame({"ingredient": ["Vitamin C", "Vitamin B12", "Omega-3"]})
     editor = mo.ui.data_editor(data=df, label="Edit Data")
     editor
-    return
+    return (editor,)
 
 
 @app.cell
-def _():
+def _(editor):
+    data_frame = editor.value
+    data_as_JSON = data_frame.to_json()
+    data_as_JSON
     return
 
 
