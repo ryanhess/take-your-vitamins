@@ -7,5 +7,6 @@ requires-python = ">=3.13"
 
 [dependency-groups]
 dev = [
+    "httpx>=0.28.1",
     "marimo>=0.23.0",
 ]
