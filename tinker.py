@@ -7,16 +7,11 @@ app = marimo.App(width="medium")
 @app.cell
 def _():
     import marimo as mo
+    import pandas as pd
 
-    return
-
-
-@app.cell(hide_code=True)
-def _():
-    import httpx
-    response = httpx.get("https://api.ods.od.nih.gov/dsld/v9/label/260891")
-    label = response.json()
-    label
+    df = pd.DataFrame({"A": [1, 2, 3], "B": ["a", "b", "c"]})
+    editor = mo.ui.data_editor(data=df, label="Edit Data")
+    editor
     return
 
 
