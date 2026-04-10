@@ -36,7 +36,7 @@ def _():
 
     url = "http://localhost:8000/"
 
-    def get_suppliment_schedule(suppliments):
+    def fetch_suppliment_schedule_from_api(suppliments):
         try:
             response = httpx.post(url, json=suppliments)
             response.raise_for_status()
@@ -49,32 +49,37 @@ def _():
         except httpx.TimeoutException:
             return "Request timed out"
 
-    return (get_suppliment_schedule,)
+    return (fetch_suppliment_schedule_from_api,)
 
 
 @app.cell
-def _(
-    get_suppliment_schedule,
-    mo,
-    suppliment_data_editor,
-    suppliments_headers,
-):
+def _(mo, suppliment_data_editor, suppliments_headers):
+    raw_suppliment_data = suppliment_data_editor.value
+    if raw_suppliment_data is None:
+        shaped_suppliment_data = None
+    else:
+        shaped_suppliment_data = [
+            {"name": suppliment_name}
+            for suppliment_name in raw_suppliment_data[suppliments_headers[0]]
+        ]
+    mo.output.append(mo.md("## Request Body:"))
+    mo.output.append(shaped_suppliment_data)
+    return shaped_suppliment_data
+
+
+@app.cell
+def _(fetch_suppliment_schedule_from_api, mo, shaped_suppliment_data):
     import asyncio
     import time
 
-    edited_suppliment_data = suppliment_data_editor.value
-    if edited_suppliment_data is None:
+    if shaped_suppliment_data is None:
         mo.output.append(mo.md("## Nothing to send yet. Hit Submit."))
     else:
-        suppliments = [
-            {"name": suppliment_name}
-            for suppliment_name in edited_suppliment_data[suppliments_headers[0]]
-        ]
-        print(suppliments)
-
         with mo.status.spinner(title="Sending. Waiting for response...") as spinner:
             start_time = time.perf_counter()
-            schedule_json_or_error = get_suppliment_schedule(suppliments)
+            schedule_json_or_error = fetch_suppliment_schedule_from_api(
+                shaped_suppliment_data
+            )
             end_time = time.perf_counter()
             response_time = round((end_time - start_time) * 1000)
 
