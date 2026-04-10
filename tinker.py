@@ -11,7 +11,7 @@ def _():
 
 
 @app.cell
-def _(suppliments_headers):
+def _(mo, suppliments_headers):
     import marimo as mo
 
     # fmt: off
@@ -26,7 +26,7 @@ def _(suppliments_headers):
     suppliment_data_editor = mo.ui.data_editor(
         data=suppliment_data, label="Edit Data"
     ).form(bordered=True)
-    suppliment_data_editor
+    mo.output.append(suppliment_data_editor)
     return mo, suppliment_data_editor
 
 
@@ -63,16 +63,22 @@ def _(
     import time
 
     edited_suppliment_data = suppliment_data_editor.value
-    suppliments = edited_suppliment_data[suppliments_headers[0]]
+    if edited_suppliment_data is None:
+        mo.output.append(mo.md("## Nothing to send yet. Hit Submit."))
+    else:
+        suppliments = edited_suppliment_data[suppliments_headers[0]]
 
-    with mo.status.spinner(title="Sending. Waiting for response...") as spinner:
-        start_time = time.perf_counter()
-        schedule_json_or_error = get_suppliment_schedule(suppliment_data_editor.value)
-        end_time = time.perf_counter()
-        response_time = round((end_time - start_time) * 1000)
+        with mo.status.spinner(title="Sending. Waiting for response...") as spinner:
+            start_time = time.perf_counter()
+            schedule_json_or_error = get_suppliment_schedule(
+                suppliment_data_editor.value
+            )
+            end_time = time.perf_counter()
+            response_time = round((end_time - start_time) * 1000)
 
-    mo.output.replace(mo.md(f"Response received in {response_time}ms"))
-    mo.output.append(schedule_json_or_error)
+        mo.output.replace(mo.md(f"Response received in {response_time}ms"))
+        mo.output.append(schedule_json_or_error)
+
     return
 
 
