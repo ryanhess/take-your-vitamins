@@ -41,13 +41,13 @@ def _():
             response = httpx.post(url, json=suppliments)
             response.raise_for_status()
             suppliment_schedule = response.json()
-            return suppliment_schedule
+            return {"code": 200, "json": suppliment_schedule}
         except httpx.ConnectError:
-            return "Could not reach server"
+            return {"code": None, "detail": "Could not reach server"}
         except httpx.HTTPStatusError as e:
-            return f"{e.response.status_code}: {e.response.text}"
+            return {"code": e.response.status_code, "detail": e.response.text}
         except httpx.TimeoutException:
-            return "Request timed out"
+            return {"code": None, "detail": "Request timed out"}
 
     return (fetch_suppliment_schedule_from_api,)
 
@@ -74,19 +74,24 @@ def _(fetch_suppliment_schedule_from_api, mo, shaped_suppliment_data):
 
     if shaped_suppliment_data is None:
         mo.output.append(mo.md("## Nothing to send yet. Hit Submit."))
+        schedule_json_or_none = None
     else:
         with mo.status.spinner(title="Sending. Waiting for response...") as spinner:
             start_time = time.perf_counter()
-            schedule_json_or_error = fetch_suppliment_schedule_from_api(
-                shaped_suppliment_data
-            )
+            fetch_result = fetch_suppliment_schedule_from_api(shaped_suppliment_data)
             end_time = time.perf_counter()
             response_time = round((end_time - start_time) * 1000)
 
         mo.output.replace(mo.md(f"Response received in {response_time}ms"))
-        mo.output.append(schedule_json_or_error)
+        if fetch_result["code"] == 200:
+            schedule_json_or_none = fetch_result["json"]
+            mo.output.append(mo.md("No Errors"))
+        else:
+            err_to_display = fetch_result
+            schedule_json_or_none = None
+            mo.output.append(err_to_display)
 
-    return
+    return schedule_json_or_none
 
 
 if __name__ == "__main__":
