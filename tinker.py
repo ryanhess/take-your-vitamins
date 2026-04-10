@@ -36,50 +36,80 @@ def _():
 
     url = "http://localhost:8000/"
 
-    def get_suppliment_schedule(suppliments):
+    def fetch_suppliment_schedule_from_api(suppliments):
         try:
             response = httpx.post(url, json=suppliments)
             response.raise_for_status()
             suppliment_schedule = response.json()
-            return suppliment_schedule
+            return {"code": 200, "json": suppliment_schedule}
         except httpx.ConnectError:
-            return "Could not reach server"
+            return {"code": None, "detail": "Could not reach server"}
         except httpx.HTTPStatusError as e:
-            return f"{e.response.status_code}: {e.response.text}"
+            return {"code": e.response.status_code, "detail": e.response.text}
         except httpx.TimeoutException:
-            return "Request timed out"
+            return {"code": None, "detail": "Request timed out"}
 
-    return (get_suppliment_schedule,)
+    return (fetch_suppliment_schedule_from_api,)
 
 
 @app.cell
-def _(
-    get_suppliment_schedule,
-    mo,
-    suppliment_data_editor,
-    suppliments_headers,
-):
+def _(mo, suppliment_data_editor, suppliments_headers):
+    raw_suppliment_data = suppliment_data_editor.value
+    if raw_suppliment_data is None:
+        shaped_suppliment_data = None
+    else:
+        shaped_suppliment_data = [
+            {"name": suppliment_name}
+            for suppliment_name in raw_suppliment_data[suppliments_headers[0]]
+        ]
+    return shaped_suppliment_data
+
+
+@app.cell
+def _(fetch_suppliment_schedule_from_api, mo, shaped_suppliment_data):
     import asyncio
     import time
 
-    edited_suppliment_data = suppliment_data_editor.value
-    if edited_suppliment_data is None:
+    if shaped_suppliment_data is None:
         mo.output.append(mo.md("## Nothing to send yet. Hit Submit."))
+        schedule_json_or_none = None
     else:
-        suppliments = [
-            {"name": suppliment_name}
-            for suppliment_name in edited_suppliment_data[suppliments_headers[0]]
-        ]
-        print(suppliments)
-
         with mo.status.spinner(title="Sending. Waiting for response...") as spinner:
             start_time = time.perf_counter()
-            schedule_json_or_error = get_suppliment_schedule(suppliments)
+            fetch_result = fetch_suppliment_schedule_from_api(shaped_suppliment_data)
             end_time = time.perf_counter()
             response_time = round((end_time - start_time) * 1000)
 
-        mo.output.replace(mo.md(f"Response received in {response_time}ms"))
-        mo.output.append(schedule_json_or_error)
+        mo.output.append(mo.md(f"Response received in {response_time}ms"))
+        if fetch_result["code"] == 200:
+            schedule_json_or_none = fetch_result["json"]
+        else:
+            err_to_display = fetch_result
+            schedule_json_or_none = None
+            mo.output.append(err_to_display)
+
+    return schedule_json_or_none
+
+
+@app.cell
+def _(mo, schedule_json_or_none):
+    print(schedule_json_or_none)
+    if schedule_json_or_none is not None:
+        table_ready_data = []
+        for slot in schedule_json_or_none.items():
+            slot_name, suppliments = slot
+            row = {"Time Slot": slot_name} | {
+                f"Suppliment {i + 1}": suppliment["name"]
+                for i, suppliment in enumerate(suppliments)
+            }
+            print(row)
+            table_ready_data.append(row)
+
+        header = mo.md("## Suppliment Schedule")
+        table = mo.ui.table(data=table_ready_data, selection=None)
+        layout = mo.vstack([header, table])
+        mo.output.append(mo.md("## Suppliment Schedule"))
+        mo.output.append(table)
 
     return
 

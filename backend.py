@@ -35,6 +35,7 @@ async def make_viamin_schedule(
         before_lunch=[
             SupplimentInPlan(name="Alpha-lipoic acid"),
             SupplimentInPlan(name="Mugwort"),
+            SupplimentInPlan(name="Apple Cider Vinegar"),
         ],
         after_lunch=[SupplimentInPlan(name="Omega-3")],
         before_dinner=[SupplimentInPlan(name="B3")],
