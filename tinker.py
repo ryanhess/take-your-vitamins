@@ -66,13 +66,15 @@ def _(
     if edited_suppliment_data is None:
         mo.output.append(mo.md("## Nothing to send yet. Hit Submit."))
     else:
-        suppliments = edited_suppliment_data[suppliments_headers[0]]
+        suppliments = [
+            {"name": suppliment_name}
+            for suppliment_name in edited_suppliment_data[suppliments_headers[0]]
+        ]
+        print(suppliments)
 
         with mo.status.spinner(title="Sending. Waiting for response...") as spinner:
             start_time = time.perf_counter()
-            schedule_json_or_error = get_suppliment_schedule(
-                suppliment_data_editor.value
-            )
+            schedule_json_or_error = get_suppliment_schedule(suppliments)
             end_time = time.perf_counter()
             response_time = round((end_time - start_time) * 1000)
 

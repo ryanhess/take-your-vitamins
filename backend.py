@@ -21,5 +21,27 @@ class SupplimentPlanResponse(BaseModel):
 async def make_viamin_schedule(
     suppliment_data: list[SupplimentInPlan],
 ) -> SupplimentPlanResponse:
+    if suppliment_data == []:
+        return SupplimentPlanResponse()
+
     print(suppliment_data)
-    raise HTTPException(status_code=500, detail="test error response")
+
+    response_schedule = SupplimentPlanResponse(
+        before_breakfast=[
+            SupplimentInPlan(name="Vitamin B12"),
+            SupplimentInPlan(name="Mugwort"),
+        ],
+        after_breakfast=[SupplimentInPlan(name="Vitamin C")],
+        before_lunch=[
+            SupplimentInPlan(name="Alpha-lipoic acid"),
+            SupplimentInPlan(name="Mugwort"),
+        ],
+        after_lunch=[SupplimentInPlan(name="Omega-3")],
+        before_dinner=[SupplimentInPlan(name="B3")],
+        after_dinner=[
+            SupplimentInPlan(name="Mugwort"),
+            SupplimentInPlan(name="Lion's Mane"),
+        ],
+    )
+
+    return response_schedule
