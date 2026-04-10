@@ -6,33 +6,73 @@ app = marimo.App(width="medium")
 
 @app.cell
 def _():
+    suppliments_headers = ["suppliments (ingredient name)"]
+    return (suppliments_headers,)
+
+
+@app.cell
+def _(suppliments_headers):
     import marimo as mo
 
     # fmt: off
     suppliment_data = {
-        "suppliments (ingredient name)": [
+        suppliments_headers[0]: [
             "Vitamin C",
             "Vitamin B12",
             "Omega-3"
         ]
     }
     # fmt: on
-    suppliment_data_editor = mo.ui.data_editor(data=suppliment_data, label="Edit Data").form(bordered=True)
+    suppliment_data_editor = mo.ui.data_editor(
+        data=suppliment_data, label="Edit Data"
+    ).form(bordered=True)
     suppliment_data_editor
-    return (mo,)
+    return mo, suppliment_data_editor
 
 
 @app.cell
-async def _(mo):
+def _():
+    import httpx
+
+    url = "http://localhost:8000/"
+
+    def get_suppliment_schedule(suppliments):
+        try:
+            response = httpx.post(url, json=suppliments)
+            response.raise_for_status()
+            suppliment_schedule = response.json()
+            return suppliment_schedule
+        except httpx.ConnectError:
+            return "Could not reach server"
+        except httpx.HTTPStatusError as e:
+            return f"{e.response.status_code}: {e.response.text}"
+        except httpx.TimeoutException:
+            return "Request timed out"
+
+    return (get_suppliment_schedule,)
+
+
+@app.cell
+def _(
+    get_suppliment_schedule,
+    mo,
+    suppliment_data_editor,
+    suppliments_headers,
+):
     import asyncio
+    import time
 
-    with mo.status.spinner(title="Sending...") as spinner:
-        await asyncio.sleep(1)
-        spinner.update("Waiting for response...")
-        await asyncio.sleep(1)
+    edited_suppliment_data = suppliment_data_editor.value
+    suppliments = edited_suppliment_data[suppliments_headers[0]]
 
-    mo.output.replace(mo.md("### Response received in 100ms"))
-    mo.output.append()
+    with mo.status.spinner(title="Sending. Waiting for response...") as spinner:
+        start_time = time.perf_counter()
+        schedule_json_or_error = get_suppliment_schedule(suppliment_data_editor.value)
+        end_time = time.perf_counter()
+        response_time = round((end_time - start_time) * 1000)
+
+    mo.output.replace(mo.md(f"Response received in {response_time}ms"))
+    mo.output.append(schedule_json_or_error)
     return
 
 
