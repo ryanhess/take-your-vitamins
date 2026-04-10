@@ -62,8 +62,6 @@ def _(mo, suppliment_data_editor, suppliments_headers):
             {"name": suppliment_name}
             for suppliment_name in raw_suppliment_data[suppliments_headers[0]]
         ]
-    mo.output.append(mo.md("## Request Body:"))
-    mo.output.append(shaped_suppliment_data)
     return shaped_suppliment_data
 
 
@@ -82,16 +80,38 @@ def _(fetch_suppliment_schedule_from_api, mo, shaped_suppliment_data):
             end_time = time.perf_counter()
             response_time = round((end_time - start_time) * 1000)
 
-        mo.output.replace(mo.md(f"Response received in {response_time}ms"))
+        mo.output.append(mo.md(f"Response received in {response_time}ms"))
         if fetch_result["code"] == 200:
             schedule_json_or_none = fetch_result["json"]
-            mo.output.append(mo.md("No Errors"))
         else:
             err_to_display = fetch_result
             schedule_json_or_none = None
             mo.output.append(err_to_display)
 
     return schedule_json_or_none
+
+
+@app.cell
+def _(mo, schedule_json_or_none):
+    print(schedule_json_or_none)
+    if schedule_json_or_none is not None:
+        table_ready_data = []
+        for slot in schedule_json_or_none.items():
+            slot_name, suppliments = slot
+            row = {"Time Slot": slot_name} | {
+                f"Suppliment {i + 1}": suppliment["name"]
+                for i, suppliment in enumerate(suppliments)
+            }
+            print(row)
+            table_ready_data.append(row)
+
+        header = mo.md("## Suppliment Schedule")
+        table = mo.ui.table(data=table_ready_data, selection=None)
+        layout = mo.vstack([header, table])
+        mo.output.append(mo.md("## Suppliment Schedule"))
+        mo.output.append(table)
+
+    return
 
 
 if __name__ == "__main__":
