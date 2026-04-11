@@ -11,6 +11,7 @@ from backend import (
 class Ingredient:
     name: str
     attributes: IngredientAttributes
+    DEV_conflict_count: int = 0
 
 
 def apply_constraints_to_sups(
