@@ -142,22 +142,27 @@ ingredient_datasets = [
 ingredients = ingredient_datasets[1]
 
 
-class IngredientInPlanRequestResponse(BaseModel):
+class IngredientInRequest(BaseModel):
     name: str
 
 
+class IngredientInResponse(BaseModel):
+    name: str
+    DEV__conflict_count: int = 0
+
+
 class SupplimentPlanResponse(BaseModel):
-    before_breakfast: list[IngredientInPlanRequestResponse] = []
-    after_breakfast: list[IngredientInPlanRequestResponse] = []
-    before_lunch: list[IngredientInPlanRequestResponse] = []
-    after_lunch: list[IngredientInPlanRequestResponse] = []
-    before_dinner: list[IngredientInPlanRequestResponse] = []
-    after_dinner: list[IngredientInPlanRequestResponse] = []
+    before_breakfast: list[IngredientInResponse] = []
+    after_breakfast: list[IngredientInResponse] = []
+    before_lunch: list[IngredientInResponse] = []
+    after_lunch: list[IngredientInResponse] = []
+    before_dinner: list[IngredientInResponse] = []
+    after_dinner: list[IngredientInResponse] = []
 
 
 @app.post("/")
 async def make_viamin_schedule(
-    supplement_data: list[IngredientInPlanRequestResponse],
+    supplement_data: list[IngredientInRequest],
 ) -> SupplimentPlanResponse:
     if supplement_data == []:
         return SupplimentPlanResponse()
