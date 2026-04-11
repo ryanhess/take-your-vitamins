@@ -3,6 +3,7 @@ from backend import (
     IngredientAttributes,
     IngredientInPlanRequestResponse,
     SupplimentPlanResponse,
+    ingredients,
 )
 
 
@@ -15,7 +16,27 @@ class Ingredient:
 def apply_constraints_to_sups(
     request: list[IngredientInPlanRequestResponse],
 ) -> list[Ingredient]:
-    return []
+    ingredient_names_in_request = [ing.name for ing in request]
+    ingredient_objects_from_request = []
+
+    for name in ingredient_names_in_request:
+        # intentionally allow a key error to raise. trying to keep it simple for now.
+        attributes_from_database = ingredients[name]
+        database_take_not_with = attributes_from_database.take_not_with
+
+        narrowed_take_not_with = list(
+            set(database_take_not_with).intersection(ingredient_names_in_request)
+        )
+
+        new_attributes = IngredientAttributes(
+            take_not_with=narrowed_take_not_with,
+            before_after_food=attributes_from_database.before_after_food,
+        )
+
+        new_ingredient_object = Ingredient(name=name, attributes=new_attributes)
+        ingredient_objects_from_request.append(new_ingredient_object)
+
+    return ingredient_objects_from_request
 
 
 def split_sups_before_after(
@@ -51,7 +72,7 @@ def transform_to_response(
         before_dinner=get_response_ingredients_from_bin(before_bins[2]),
         after_breakfast=get_response_ingredients_from_bin(after_bins[0]),
         after_lunch=get_response_ingredients_from_bin(after_bins[1]),
-        after_dinner=get_response_ingredients_from_bin(after_bins[0]),
+        after_dinner=get_response_ingredients_from_bin(after_bins[2]),
     )
     return SupplimentPlanResponse()
 
