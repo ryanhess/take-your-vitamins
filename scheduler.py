@@ -14,6 +14,13 @@ class Ingredient:
     attributes: IngredientAttributes
     DEV_conflict_count: int = 0
 
+    def __hash__(self):
+        return hash(self.name)
+
+    def __eq__(self, other):
+        is_instance = isinstance(other, Ingredient)
+        return is_instance and self.name == other.name
+
 
 type Bin = set[Ingredient]
 type BinList = list[Bin]
@@ -64,22 +71,22 @@ def bin_conflict_count(bin: Bin, take_not_with: set[str]) -> int:
     return num_conflicts
 
 
-def bin_suppliments_by_constraints(ings: list[Ingredient]) -> BinList:
+def bin_suppliments_by_constraints(ingreds: list[Ingredient]) -> BinList:
     """
     bins[0] is breakfast, bins[1] is lunch, bins[2] is dinner.
     """
     bins: BinList = [set(), set(), set()]
 
     # fmt: off
-    sorted_ings = sorted(
-        ings,
+    sorted_ingreds = sorted(
+        ingreds,
         key=lambda sup: 
             len(sup.attributes.take_not_with),
         reverse=True
     )
     # fmt: on
 
-    for ingred in sorted_ings:
+    for ingred in sorted_ingreds:
         take_not_with = set(ingred.attributes.take_not_with)
         conflict_counts = []
 
