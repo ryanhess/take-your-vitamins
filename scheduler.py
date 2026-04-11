@@ -85,6 +85,7 @@ def bin_suppliments_by_constraints(ings: list[Ingredient]) -> list[set[Ingredien
         fewest_conflicts = min(conflict_counts)
         target_index = conflict_counts.index(fewest_conflicts)
 
+        ing.DEV_conflict_count = fewest_conflicts
         bins[target_index].add(ing)
 
     return bins
@@ -93,8 +94,21 @@ def bin_suppliments_by_constraints(ings: list[Ingredient]) -> list[set[Ingredien
 def get_response_ingredients_from_bin(
     bin: set[Ingredient],
 ) -> list[IngredientInResponse]:
-    ingredients_result = [IngredientInResponse(name=sup.name) for sup in bin]
+    # fmt: off
+    ingredients_result = [
+        IngredientInResponse(
+            name=sup.name,
+            DEV__conflict_count=sup.DEV_conflict_count
+        ) for sup in bin
+    ]
+    # fmt: on
     return ingredients_result
+
+
+def get_total_conflict_count(
+    before: list[set[Ingredient]], after: list[set[Ingredient]]
+) -> int:
+    return 0
 
 
 def transform_to_response(
@@ -107,6 +121,7 @@ def transform_to_response(
         after_breakfast=get_response_ingredients_from_bin(after_bins[0]),
         after_lunch=get_response_ingredients_from_bin(after_bins[1]),
         after_dinner=get_response_ingredients_from_bin(after_bins[2]),
+        DEV_total_conflict_count=get_total_conflict_count(before_bins, after_bins),
     )
     return SupplimentPlanResponse()
 
