@@ -22,7 +22,7 @@ type BinList = list[Bin]
 def apply_constraints_to_sups(
     request: list[IngredientInRequest],
 ) -> list[Ingredient]:
-    ingredient_names_in_request = [ing.name for ing in request]
+    ingredient_names_in_request = [ingred.name for ingred in request]
     ingredient_objects_from_request = []
 
     for name in ingredient_names_in_request:
@@ -59,7 +59,7 @@ def split_sups_before_after(
 
 
 def bin_conflict_count(bin: Bin, take_not_with: set[str]) -> int:
-    names_in_bin = {ing.name for ing in bin}
+    names_in_bin = {ingred.name for ingred in bin}
     num_conflicts = len(names_in_bin & take_not_with)
     return num_conflicts
 
@@ -79,8 +79,8 @@ def bin_suppliments_by_constraints(ings: list[Ingredient]) -> BinList:
     )
     # fmt: on
 
-    for ing in sorted_ings:
-        take_not_with = set(ing.attributes.take_not_with)
+    for ingred in sorted_ings:
+        take_not_with = set(ingred.attributes.take_not_with)
         conflict_counts = []
 
         for bin in bins:
@@ -89,8 +89,8 @@ def bin_suppliments_by_constraints(ings: list[Ingredient]) -> BinList:
         fewest_conflicts = min(conflict_counts)
         target_index = conflict_counts.index(fewest_conflicts)
 
-        ing.DEV_conflict_count = fewest_conflicts
-        bins[target_index].add(ing)
+        ingred.DEV_conflict_count = fewest_conflicts
+        bins[target_index].add(ingred)
 
     return bins
 
@@ -110,7 +110,13 @@ def get_response_ingredients_from_bin(
 
 
 def get_total_conflict_count(before: BinList, after: BinList) -> int:
-    return 0
+    total_count = 0
+    all_bins: BinList = before + after
+
+    for bin in all_bins:
+        total_count += sum(ingred.DEV_conflict_count for ingred in bin)
+
+    return total_count
 
 
 def transform_to_response(
