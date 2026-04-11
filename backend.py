@@ -158,6 +158,7 @@ class SupplimentPlanResponse(BaseModel):
     after_lunch: list[IngredientInResponse] = []
     before_dinner: list[IngredientInResponse] = []
     after_dinner: list[IngredientInResponse] = []
+    DEV_total_conflict_count: int = 0
 
 
 @app.post("/")
