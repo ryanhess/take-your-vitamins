@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from backend import (
     IngredientAttributes,
     IngredientInPlanRequest,
@@ -5,9 +6,10 @@ from backend import (
 )
 
 
-# not very robust, (could be repeats of the same pairs, but I just want one)
-# but good enough for MVP and internal use.
-type Ingredient = dict[str, IngredientAttributes]
+@dataclass
+class Ingredient:
+    name: str
+    attributes: IngredientAttributes
 
 
 def apply_constraints_to_sups(
@@ -19,7 +21,14 @@ def apply_constraints_to_sups(
 def split_sups_before_after(
     sups: list[Ingredient],
 ) -> tuple[list[Ingredient], list[Ingredient]]:
-    return ([], [])
+    before = []
+    after = []
+    for sup in sups:
+        if sup.attributes.before_after_food == "before":
+            before.append(sup)
+        else:
+            after.append(sup)
+    return (before, after)
 
 
 def bin_suppliments_by_constraints(sups: list[Ingredient]) -> list[list[Ingredient]]:
