@@ -15,6 +15,10 @@ class Ingredient:
     DEV_conflict_count: int = 0
 
 
+type Bin = set[Ingredient]
+type BinList = list[Bin]
+
+
 def apply_constraints_to_sups(
     request: list[IngredientInRequest],
 ) -> list[Ingredient]:
