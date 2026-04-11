@@ -1,11 +1,11 @@
 from dataclasses import dataclass
-from backend import (
+from models import (
     IngredientAttributes,
     IngredientInRequest,
     IngredientInResponse,
     SupplimentPlanResponse,
-    ingredients,
 )
+from sample_data import ingredients
 
 
 @dataclass
