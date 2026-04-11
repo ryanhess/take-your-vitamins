@@ -58,17 +58,17 @@ def split_sups_before_after(
     return (before, after)
 
 
-def bin_conflict_count(bin: set[Ingredient], take_not_with: set[str]) -> int:
+def bin_conflict_count(bin: Bin, take_not_with: set[str]) -> int:
     names_in_bin = {ing.name for ing in bin}
     num_conflicts = len(names_in_bin & take_not_with)
     return num_conflicts
 
 
-def bin_suppliments_by_constraints(ings: list[Ingredient]) -> list[set[Ingredient]]:
+def bin_suppliments_by_constraints(ings: list[Ingredient]) -> BinList:
     """
     bins[0] is breakfast, bins[1] is lunch, bins[2] is dinner.
     """
-    bins: list[set[Ingredient]] = [set(), set(), set()]
+    bins: BinList = [set(), set(), set()]
 
     # fmt: off
     sorted_ings = sorted(
@@ -96,7 +96,7 @@ def bin_suppliments_by_constraints(ings: list[Ingredient]) -> list[set[Ingredien
 
 
 def get_response_ingredients_from_bin(
-    bin: set[Ingredient],
+    bin: Bin,
 ) -> list[IngredientInResponse]:
     # fmt: off
     ingredients_result = [
@@ -109,14 +109,12 @@ def get_response_ingredients_from_bin(
     return ingredients_result
 
 
-def get_total_conflict_count(
-    before: list[set[Ingredient]], after: list[set[Ingredient]]
-) -> int:
+def get_total_conflict_count(before: BinList, after: BinList) -> int:
     return 0
 
 
 def transform_to_response(
-    before_bins: list[set[Ingredient]], after_bins: list[set[Ingredient]]
+    before_bins: BinList, after_bins: BinList
 ) -> SupplimentPlanResponse:
     response = SupplimentPlanResponse(
         before_breakfast=get_response_ingredients_from_bin(before_bins[0]),
