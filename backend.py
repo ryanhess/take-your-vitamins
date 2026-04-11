@@ -4,22 +4,22 @@ from pydantic import BaseModel
 app = FastAPI()
 
 
-class SupplimentInPlan(BaseModel):
+class IngredientInPlanRequest(BaseModel):
     name: str
 
 
 class SupplimentPlanResponse(BaseModel):
-    before_breakfast: list[SupplimentInPlan] = []
-    after_breakfast: list[SupplimentInPlan] = []
-    before_lunch: list[SupplimentInPlan] = []
-    after_lunch: list[SupplimentInPlan] = []
-    before_dinner: list[SupplimentInPlan] = []
-    after_dinner: list[SupplimentInPlan] = []
+    before_breakfast: list[IngredientInPlanRequest] = []
+    after_breakfast: list[IngredientInPlanRequest] = []
+    before_lunch: list[IngredientInPlanRequest] = []
+    after_lunch: list[IngredientInPlanRequest] = []
+    before_dinner: list[IngredientInPlanRequest] = []
+    after_dinner: list[IngredientInPlanRequest] = []
 
 
 @app.post("/")
 async def make_viamin_schedule(
-    suppliment_data: list[SupplimentInPlan],
+    suppliment_data: list[IngredientInPlanRequest],
 ) -> SupplimentPlanResponse:
     if suppliment_data == []:
         return SupplimentPlanResponse()
@@ -28,20 +28,20 @@ async def make_viamin_schedule(
 
     response_schedule = SupplimentPlanResponse(
         before_breakfast=[
-            SupplimentInPlan(name="Vitamin B12"),
-            SupplimentInPlan(name="Mugwort"),
+            IngredientInPlanRequest(name="Vitamin B12"),
+            IngredientInPlanRequest(name="Mugwort"),
         ],
-        after_breakfast=[SupplimentInPlan(name="Vitamin C")],
+        after_breakfast=[IngredientInPlanRequest(name="Vitamin C")],
         before_lunch=[
-            SupplimentInPlan(name="Alpha-lipoic acid"),
-            SupplimentInPlan(name="Mugwort"),
-            SupplimentInPlan(name="Apple Cider Vinegar"),
+            IngredientInPlanRequest(name="Alpha-lipoic acid"),
+            IngredientInPlanRequest(name="Mugwort"),
+            IngredientInPlanRequest(name="Apple Cider Vinegar"),
         ],
-        after_lunch=[SupplimentInPlan(name="Omega-3")],
-        before_dinner=[SupplimentInPlan(name="B3")],
+        after_lunch=[IngredientInPlanRequest(name="Omega-3")],
+        before_dinner=[IngredientInPlanRequest(name="B3")],
         after_dinner=[
-            SupplimentInPlan(name="Mugwort"),
-            SupplimentInPlan(name="Lion's Mane"),
+            IngredientInPlanRequest(name="Mugwort"),
+            IngredientInPlanRequest(name="Lion's Mane"),
         ],
     )
 
