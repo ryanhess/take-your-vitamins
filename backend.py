@@ -1,5 +1,5 @@
-from fastapi import FastAPI, HTTPException
-from models import IngredientAttributes, IngredientInRequest, SupplimentPlanResponse
+from fastapi import FastAPI
+from models import IngredientInRequest, SupplimentPlanResponse
 import scheduler
 
 
