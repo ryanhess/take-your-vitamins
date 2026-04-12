@@ -16,11 +16,15 @@ class IngredientInResponse(BaseModel):
     DEV__conflict_count: int = 0
 
 
-class SupplimentPlanResponse(BaseModel):
+class TimeSlots(BaseModel):
     before_breakfast: list[IngredientInResponse] = []
     after_breakfast: list[IngredientInResponse] = []
     before_lunch: list[IngredientInResponse] = []
     after_lunch: list[IngredientInResponse] = []
     before_dinner: list[IngredientInResponse] = []
     after_dinner: list[IngredientInResponse] = []
+
+
+class SupplimentPlanResponse(BaseModel):
     DEV_total_conflict_count: int = 0
+    schedule: TimeSlots

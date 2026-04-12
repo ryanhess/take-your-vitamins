@@ -3,6 +3,7 @@ from models import (
     IngredientAttributes,
     IngredientInRequest,
     IngredientInResponse,
+    TimeSlots,
     SupplimentPlanResponse,
 )
 from sample_data import ingredients
@@ -130,15 +131,17 @@ def transform_to_response(
     before_bins: BinList, after_bins: BinList
 ) -> SupplimentPlanResponse:
     response = SupplimentPlanResponse(
-        before_breakfast=get_response_ingredients_from_bin(before_bins[0]),
-        before_lunch=get_response_ingredients_from_bin(before_bins[1]),
-        before_dinner=get_response_ingredients_from_bin(before_bins[2]),
-        after_breakfast=get_response_ingredients_from_bin(after_bins[0]),
-        after_lunch=get_response_ingredients_from_bin(after_bins[1]),
-        after_dinner=get_response_ingredients_from_bin(after_bins[2]),
         DEV_total_conflict_count=get_total_conflict_count(before_bins, after_bins),
+        schedule=TimeSlots(
+            before_breakfast=get_response_ingredients_from_bin(before_bins[0]),
+            before_lunch=get_response_ingredients_from_bin(before_bins[1]),
+            before_dinner=get_response_ingredients_from_bin(before_bins[2]),
+            after_breakfast=get_response_ingredients_from_bin(after_bins[0]),
+            after_lunch=get_response_ingredients_from_bin(after_bins[1]),
+            after_dinner=get_response_ingredients_from_bin(after_bins[2]),
+        ),
     )
-    return SupplimentPlanResponse()
+    return response
 
 
 def create_schedule(

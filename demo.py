@@ -96,7 +96,7 @@ def _(mo, schedule_json_or_none):
     print(schedule_json_or_none)
     if schedule_json_or_none is not None:
         table_ready_data = []
-        for slot in schedule_json_or_none.items():
+        for slot in schedule_json_or_none["schedule"].items():
             slot_name, suppliments = slot
             row = {"Time Slot": slot_name} | {
                 f"Suppliment {i + 1}": suppliment["name"]
