@@ -3,7 +3,7 @@ from typing import Literal
 
 
 class IngredientAttributes(BaseModel):
-    take_not_with: list[str] = []
+    take_not_with: set[str] = set()
     before_after_food: Literal["before", "after"]
 
 
@@ -13,7 +13,7 @@ class IngredientInRequest(BaseModel):
 
 class IngredientInResponse(BaseModel):
     name: str
-    DEV__conflict_count: int = 0
+    DEV_conflict_count: int = 0
 
 
 class TimeSlots(BaseModel):
@@ -27,4 +27,4 @@ class TimeSlots(BaseModel):
 
 class SupplimentPlanResponse(BaseModel):
     DEV_total_conflict_count: int = 0
-    schedule: TimeSlots
+    schedule: TimeSlots = TimeSlots()
