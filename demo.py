@@ -13,9 +13,10 @@ def _():
 @app.cell
 def _(mo, suppliments_headers):
     import marimo as mo
+    from sample_data import ingredients
 
     # fmt: off
-    suppliment_data = {
+    supplement_data = {
         suppliments_headers[0]: [
             "Calcium",
             "Iron",
@@ -30,7 +31,7 @@ def _(mo, suppliments_headers):
     }
     # fmt: on
     suppliment_data_editor = mo.ui.data_editor(
-        data=suppliment_data, label="Edit Data"
+        data=supplement_data, label="Edit Data"
     ).form(bordered=True)
     mo.output.append(suppliment_data_editor)
     return mo, suppliment_data_editor
