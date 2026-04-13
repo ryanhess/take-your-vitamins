@@ -15,10 +15,14 @@ class Ingredient:
     DEV_conflict_count: int = 0
 
 
+type Bin = set[Ingredient]
+type BinList = list[Bin]
+
+
 def apply_constraints_to_sups(
     request: list[IngredientInRequest],
 ) -> list[Ingredient]:
-    ingredient_names_in_request = [ing.name for ing in request]
+    ingredient_names_in_request = [ingred.name for ingred in request]
     ingredient_objects_from_request = []
 
     for name in ingredient_names_in_request:
@@ -54,17 +58,17 @@ def split_sups_before_after(
     return (before, after)
 
 
-def bin_conflict_count(bin: set[Ingredient], take_not_with: set[str]) -> int:
-    names_in_bin = {ing.name for ing in bin}
+def bin_conflict_count(bin: Bin, take_not_with: set[str]) -> int:
+    names_in_bin = {ingred.name for ingred in bin}
     num_conflicts = len(names_in_bin & take_not_with)
     return num_conflicts
 
 
-def bin_suppliments_by_constraints(ings: list[Ingredient]) -> list[set[Ingredient]]:
+def bin_suppliments_by_constraints(ings: list[Ingredient]) -> BinList:
     """
     bins[0] is breakfast, bins[1] is lunch, bins[2] is dinner.
     """
-    bins: list[set[Ingredient]] = [set(), set(), set()]
+    bins: BinList = [set(), set(), set()]
 
     # fmt: off
     sorted_ings = sorted(
@@ -75,8 +79,8 @@ def bin_suppliments_by_constraints(ings: list[Ingredient]) -> list[set[Ingredien
     )
     # fmt: on
 
-    for ing in sorted_ings:
-        take_not_with = set(ing.attributes.take_not_with)
+    for ingred in sorted_ings:
+        take_not_with = set(ingred.attributes.take_not_with)
         conflict_counts = []
 
         for bin in bins:
@@ -85,20 +89,38 @@ def bin_suppliments_by_constraints(ings: list[Ingredient]) -> list[set[Ingredien
         fewest_conflicts = min(conflict_counts)
         target_index = conflict_counts.index(fewest_conflicts)
 
-        bins[target_index].add(ing)
+        ingred.DEV_conflict_count = fewest_conflicts
+        bins[target_index].add(ingred)
 
     return bins
 
 
 def get_response_ingredients_from_bin(
-    bin: set[Ingredient],
+    bin: Bin,
 ) -> list[IngredientInResponse]:
-    ingredients_result = [IngredientInResponse(name=sup.name) for sup in bin]
+    # fmt: off
+    ingredients_result = [
+        IngredientInResponse(
+            name=sup.name,
+            DEV__conflict_count=sup.DEV_conflict_count
+        ) for sup in bin
+    ]
+    # fmt: on
     return ingredients_result
 
 
+def get_total_conflict_count(before: BinList, after: BinList) -> int:
+    total_count = 0
+    all_bins: BinList = before + after
+
+    for bin in all_bins:
+        total_count += sum(ingred.DEV_conflict_count for ingred in bin)
+
+    return total_count
+
+
 def transform_to_response(
-    before_bins: list[set[Ingredient]], after_bins: list[set[Ingredient]]
+    before_bins: BinList, after_bins: BinList
 ) -> SupplimentPlanResponse:
     response = SupplimentPlanResponse(
         before_breakfast=get_response_ingredients_from_bin(before_bins[0]),
@@ -107,6 +129,7 @@ def transform_to_response(
         after_breakfast=get_response_ingredients_from_bin(after_bins[0]),
         after_lunch=get_response_ingredients_from_bin(after_bins[1]),
         after_dinner=get_response_ingredients_from_bin(after_bins[2]),
+        DEV_total_conflict_count=get_total_conflict_count(before_bins, after_bins),
     )
     return SupplimentPlanResponse()
 
