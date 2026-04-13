@@ -7,7 +7,8 @@ from models import (
     SupplimentPlanResponse,
 )
 from sample_data import ingredients
-from random import choice
+from numpy import array, where
+from numpy.random import choice
 
 
 @dataclass
@@ -78,8 +79,11 @@ def bin_conflict_count(bin: Bin, take_not_with: set[str]) -> int:
     return num_conflicts
 
 
-def select_bin_from_multiple_best(counts: list[int], min_count) -> int:
-    return 0
+def select_bin_from_multiple_best(counts: list[int], min_count: int) -> int:
+    counts_arr = array(counts)
+    (best_bins,) = where(counts_arr == min_count)
+    the_bin = choice(best_bins)
+    return the_bin
 
 
 def bin_suppliments_by_constraints(ingreds: list[Ingredient]) -> BinList:
