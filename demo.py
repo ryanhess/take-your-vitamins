@@ -17,9 +17,15 @@ def _(mo, suppliments_headers):
     # fmt: off
     suppliment_data = {
         suppliments_headers[0]: [
+            "Calcium",
+            "Iron",
+            "Zinc",
+            "Magnesium",
+            "Copper",
+            "Manganese",
             "Vitamin C",
-            "Vitamin B12",
-            "Omega-3"
+            "NAC",
+            "Green Tea Extract",
         ]
     }
     # fmt: on
