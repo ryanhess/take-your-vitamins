@@ -1,11 +1,23 @@
+from enum import Enum
+
 from models import IngredientAttributes
 
 
-ingredient_datasets = [
+class Dataset(Enum):
+    EMPTY = "empty"
+    BASE = "base"
+    EXERCISE = "exercise"
+    FORCE_CONFLICT = "force_conflict"
+
+
+DATASET = Dataset.EXERCISE
+
+
+ingredient_datasets = {
     ### SET 0--empty set ###
-    {},
+    Dataset.EMPTY: {},
     ### SET 1--should produce exactly one in each category if I ask for all of these ###
-    {
+    Dataset.BASE: {
         "Vitamin C": IngredientAttributes(
             take_not_with={"Vitamin B12", "Vitamin D"}, before_after_food="before"
         ),
@@ -26,7 +38,7 @@ ingredient_datasets = [
         ),
     },
     ### SET 2--Exercise the algorithm (generated)###
-    {
+    Dataset.EXERCISE: {
         # --- Cluster 1: Classic vitamin conflicts (dense) ---
         "Vitamin C": IngredientAttributes(
             take_not_with={"Vitamin B12", "Copper", "Niacin"},
@@ -129,6 +141,22 @@ ingredient_datasets = [
             take_not_with={"Retinol"}, before_after_food="after"
         ),
     },
-]
+    ## Delibterately cause conflicts
+    Dataset.FORCE_CONFLICT: {
+        "Alpha": IngredientAttributes(
+            take_not_with={"Bravo", "Charlie", "Delta"}, before_after_food="before"
+        ),
+        "Bravo": IngredientAttributes(
+            take_not_with={"Alpha", "Charlie", "Delta"}, before_after_food="before"
+        ),
+        "Charlie": IngredientAttributes(
+            take_not_with={"Alpha", "Bravo", "Delta"}, before_after_food="before"
+        ),
+        "Delta": IngredientAttributes(
+            take_not_with={"Alpha", "Bravo", "Charlie"}, before_after_food="before"
+        ),
+    },
+}
 
-ingredients = ingredient_datasets[2]
+
+ingredients = ingredient_datasets[DATASET]
