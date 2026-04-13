@@ -13,18 +13,25 @@ def _():
 @app.cell
 def _(mo, suppliments_headers):
     import marimo as mo
+    from sample_data import ingredients
 
     # fmt: off
-    suppliment_data = {
+    supplement_data = {
         suppliments_headers[0]: [
+            "Calcium",
+            "Iron",
+            "Zinc",
+            "Magnesium",
+            "Copper",
+            "Manganese",
             "Vitamin C",
-            "Vitamin B12",
-            "Omega-3"
+            "NAC",
+            "Green Tea Extract",
         ]
     }
     # fmt: on
     suppliment_data_editor = mo.ui.data_editor(
-        data=suppliment_data, label="Edit Data"
+        data=supplement_data, label="Edit Data"
     ).form(bordered=True)
     mo.output.append(suppliment_data_editor)
     return mo, suppliment_data_editor
@@ -93,7 +100,6 @@ def _(fetch_suppliment_schedule_from_api, mo, shaped_suppliment_data):
 
 @app.cell
 def _(mo, schedule_json_or_none):
-    print(schedule_json_or_none)
     if schedule_json_or_none is not None:
         table_ready_data = []
         for slot in schedule_json_or_none["schedule"].items():
@@ -106,7 +112,12 @@ def _(mo, schedule_json_or_none):
             table_ready_data.append(row)
 
         header = mo.md("## Suppliment Schedule")
-        table = mo.ui.table(data=table_ready_data, selection=None)
+        total_conflicts = (
+            f"{schedule_json_or_none['DEV_total_conflict_count']} schedule conflicts"
+        )
+        table = mo.ui.table(
+            data=table_ready_data, selection=None, label=total_conflicts
+        )
         layout = mo.vstack([header, table])
         mo.output.append(mo.md("## Suppliment Schedule"))
         mo.output.append(table)
