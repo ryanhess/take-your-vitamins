@@ -14,10 +14,12 @@ def _():
 def _(mo, suppliments_headers):
     import marimo as mo
     from sample_data import ingredients
+    from dataclasses import dataclass
 
-    # fmt: off
-    supplement_data = {
-        suppliments_headers[0]: [
+    @dataclass
+    class DefaultInputs:
+        entire_sample_database = list(ingredients.keys())
+        default_test_input = [
             "Calcium",
             "Iron",
             "Zinc",
@@ -28,6 +30,10 @@ def _(mo, suppliments_headers):
             "NAC",
             "Green Tea Extract",
         ]
+
+    # fmt: off
+    supplement_data = {
+        suppliments_headers[0]: DefaultInputs.default_test_input
     }
     # fmt: on
     suppliment_data_editor = mo.ui.data_editor(
@@ -108,7 +114,6 @@ def _(mo, schedule_json_or_none):
                 f"Suppliment {i + 1}": suppliment["name"]
                 for i, suppliment in enumerate(suppliments)
             }
-            print(row)
             table_ready_data.append(row)
 
         header = mo.md("## Suppliment Schedule")
