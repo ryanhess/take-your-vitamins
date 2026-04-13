@@ -43,8 +43,8 @@ def apply_constraints_to_sups(
 
         database_take_not_with = attributes_from_database.take_not_with
 
-        narrowed_take_not_with = list(
-            set(database_take_not_with).intersection(ingredient_names_in_request)
+        narrowed_take_not_with = database_take_not_with.intersection(
+            ingredient_names_in_request
         )
 
         new_attributes = IngredientAttributes(
@@ -115,7 +115,7 @@ def get_response_ingredients_from_bin(
     ingredients_result = [
         IngredientInResponse(
             name=sup.name,
-            DEV__conflict_count=sup.DEV_conflict_count
+            DEV_conflict_count=sup.DEV_conflict_count
         ) for sup in bin
     ]
     # fmt: on
@@ -132,18 +132,16 @@ def get_total_conflict_count(before: BinList, after: BinList) -> int:
     return total_count
 
 
-def transform_to_response(
-    before_bins: BinList, after_bins: BinList
-) -> SupplimentPlanResponse:
+def transform_to_response(before: BinList, after: BinList) -> SupplimentPlanResponse:
     response = SupplimentPlanResponse(
-        DEV_total_conflict_count=get_total_conflict_count(before_bins, after_bins),
+        DEV_total_conflict_count=get_total_conflict_count(before, after),
         schedule=TimeSlots(
-            before_breakfast=get_response_ingredients_from_bin(before_bins[0]),
-            before_lunch=get_response_ingredients_from_bin(before_bins[1]),
-            before_dinner=get_response_ingredients_from_bin(before_bins[2]),
-            after_breakfast=get_response_ingredients_from_bin(after_bins[0]),
-            after_lunch=get_response_ingredients_from_bin(after_bins[1]),
-            after_dinner=get_response_ingredients_from_bin(after_bins[2]),
+            before_breakfast=get_response_ingredients_from_bin(before[0]),
+            before_lunch=get_response_ingredients_from_bin(before[1]),
+            before_dinner=get_response_ingredients_from_bin(before[2]),
+            after_breakfast=get_response_ingredients_from_bin(after[0]),
+            after_lunch=get_response_ingredients_from_bin(after[1]),
+            after_dinner=get_response_ingredients_from_bin(after[2]),
         ),
     )
     return response
@@ -158,5 +156,5 @@ def create_schedule(
     )
     before_bins = bin_suppliments_by_constraints(before_constrained_sups)
     after_bins = bin_suppliments_by_constraints(after_constrained_sups)
-    response = transform_to_response(before_bins=before_bins, after_bins=after_bins)
+    response = transform_to_response(before=before_bins, after=after_bins)
     return response
