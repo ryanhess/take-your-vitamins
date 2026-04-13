@@ -1,7 +1,14 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
+from typing import Literal
 
 app = FastAPI()
+
+
+class IngredientInternal(BaseModel):
+    name: str
+    take_not_with: list["IngredientInternal"] = []
+    before_after_food: Literal["before", "after"]
 
 
 class IngredientInPlanRequest(BaseModel):
