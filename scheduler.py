@@ -7,6 +7,7 @@ from models import (
     SupplimentPlanResponse,
 )
 from sample_data import ingredients
+from random import choice
 
 
 @dataclass
@@ -77,6 +78,10 @@ def bin_conflict_count(bin: Bin, take_not_with: set[str]) -> int:
     return num_conflicts
 
 
+def select_bin_from_multiple_best(counts: list[int], min_count) -> int:
+    return 0
+
+
 def bin_suppliments_by_constraints(ingreds: list[Ingredient]) -> BinList:
     """
     bins[0] is breakfast, bins[1] is lunch, bins[2] is dinner.
@@ -99,10 +104,10 @@ def bin_suppliments_by_constraints(ingreds: list[Ingredient]) -> BinList:
         for bin in bins:
             conflict_counts.append(bin_conflict_count(bin, take_not_with))
 
-        fewest_conflicts = min(conflict_counts)
-        target_index = conflict_counts.index(fewest_conflicts)
+        min_conflicts = min(conflict_counts)
+        target_index = select_bin_from_multiple_best(conflict_counts, min_conflicts)
 
-        ingred.DEV_conflict_count = fewest_conflicts
+        ingred.DEV_conflict_count = min_conflicts
         bins[target_index].add(ingred)
 
     return bins
