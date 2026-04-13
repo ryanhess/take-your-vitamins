@@ -1,7 +1,8 @@
 from dataclasses import dataclass
 from backend import (
     IngredientAttributes,
-    IngredientInPlanRequestResponse,
+    IngredientInRequest,
+    IngredientInResponse,
     SupplimentPlanResponse,
     ingredients,
 )
@@ -11,10 +12,11 @@ from backend import (
 class Ingredient:
     name: str
     attributes: IngredientAttributes
+    DEV_conflict_count: int = 0
 
 
 def apply_constraints_to_sups(
-    request: list[IngredientInPlanRequestResponse],
+    request: list[IngredientInRequest],
 ) -> list[Ingredient]:
     ingredient_names_in_request = [ing.name for ing in request]
     ingredient_objects_from_request = []
@@ -60,8 +62,7 @@ def bin_conflict_count(bin: set[Ingredient], take_not_with: set[str]) -> int:
 
 def bin_suppliments_by_constraints(ings: list[Ingredient]) -> list[set[Ingredient]]:
     """
-    We have by now made two problems out of this, before and after a meal. This function
-    sorts into 3 bins: bin 0 is breakfast, bin 1 is lunch, bin 2 is dinner.
+    bins[0] is breakfast, bins[1] is lunch, bins[2] is dinner.
     """
     bins: list[set[Ingredient]] = [set(), set(), set()]
 
@@ -91,8 +92,8 @@ def bin_suppliments_by_constraints(ings: list[Ingredient]) -> list[set[Ingredien
 
 def get_response_ingredients_from_bin(
     bin: set[Ingredient],
-) -> list[IngredientInPlanRequestResponse]:
-    ingredients_result = [IngredientInPlanRequestResponse(name=sup.name) for sup in bin]
+) -> list[IngredientInResponse]:
+    ingredients_result = [IngredientInResponse(name=sup.name) for sup in bin]
     return ingredients_result
 
 
@@ -111,7 +112,7 @@ def transform_to_response(
 
 
 def create_schedule(
-    request: list[IngredientInPlanRequestResponse],
+    request: list[IngredientInRequest],
 ) -> SupplimentPlanResponse:
     request_sups_with_constraints = apply_constraints_to_sups(request)
     before_constrained_sups, after_constrained_sups = split_sups_before_after(
