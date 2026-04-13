@@ -6,12 +6,12 @@ app = marimo.App(width="medium")
 
 @app.cell
 def _():
-    suppliments_headers = ["suppliments (ingredient name)"]
-    return (suppliments_headers,)
+    supplements_header = ["suppliments (ingredient name)"]
+    return (supplements_header,)
 
 
 @app.cell
-def _(mo, suppliments_headers):
+def _(mo, supplements_header):
     import marimo as mo
     from sample_data import ingredients
     from dataclasses import dataclass
@@ -34,14 +34,14 @@ def _(mo, suppliments_headers):
 
     # fmt: off
     supplement_data = {
-        suppliments_headers[0]: DefaultInputs.blank
+        supplements_header[0]: DefaultInputs.blank
     }
     # fmt: on
-    suppliment_data_editor = mo.ui.data_editor(
+    supplement_data_editor = mo.ui.data_editor(
         data=supplement_data, label="Edit Data"
     ).form(bordered=True)
-    mo.output.append(suppliment_data_editor)
-    return mo, suppliment_data_editor
+    mo.output.append(supplement_data_editor)
+    return mo, supplement_data_editor
 
 
 @app.cell
@@ -67,14 +67,14 @@ def _():
 
 
 @app.cell
-def _(mo, suppliment_data_editor, suppliments_headers):
-    raw_suppliment_data = suppliment_data_editor.value
+def _(mo, supplement_data_editor, supplements_header):
+    raw_suppliment_data = supplement_data_editor.value
     if raw_suppliment_data is None:
         shaped_suppliment_data = None
     else:
         shaped_suppliment_data = [
             {"name": suppliment_name}
-            for suppliment_name in raw_suppliment_data[suppliments_headers[0]]
+            for suppliment_name in raw_suppliment_data[supplements_header[0]]
         ]
     return shaped_suppliment_data
 
