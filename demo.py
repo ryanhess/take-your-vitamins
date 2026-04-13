@@ -18,7 +18,7 @@ def _(mo, suppliments_headers):
 
     @dataclass
     class DefaultInputs:
-        entire_sample_database = list(ingredients.keys())
+        blank = []
         default_test_input = [
             "Calcium",
             "Iron",
@@ -30,10 +30,11 @@ def _(mo, suppliments_headers):
             "NAC",
             "Green Tea Extract",
         ]
+        entire_sample_database = list(ingredients.keys())
 
     # fmt: off
     supplement_data = {
-        suppliments_headers[0]: DefaultInputs.default_test_input
+        suppliments_headers[0]: DefaultInputs.blank
     }
     # fmt: on
     suppliment_data_editor = mo.ui.data_editor(
