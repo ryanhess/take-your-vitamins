@@ -1,3 +1,5 @@
+from curses import raw
+
 import marimo
 
 __generated_with = "0.23.0"
@@ -6,7 +8,7 @@ app = marimo.App(width="medium")
 
 @app.cell
 def _():
-    supplements_header = ["suppliments (ingredient name)"]
+    supplements_header = ["supplements (ingredient name)"]
     return (supplements_header,)
 
 
@@ -50,12 +52,12 @@ def _():
 
     url = "http://localhost:8000/"
 
-    def fetch_suppliment_schedule_from_api(suppliments):
+    def fetch_supplement_schedule_from_api(supplements):
         try:
-            response = httpx.post(url, json=suppliments)
+            response = httpx.post(url, json=supplements)
             response.raise_for_status()
-            suppliment_schedule = response.json()
-            return {"code": 200, "json": suppliment_schedule}
+            supplement_schedule = response.json()
+            return {"code": 200, "json": supplement_schedule}
         except httpx.ConnectError:
             return {"code": None, "detail": "Could not reach server"}
         except httpx.HTTPStatusError as e:
@@ -63,34 +65,33 @@ def _():
         except httpx.TimeoutException:
             return {"code": None, "detail": "Request timed out"}
 
-    return (fetch_suppliment_schedule_from_api,)
+    return (fetch_supplement_schedule_from_api,)
 
 
 @app.cell
 def _(mo, supplement_data_editor, supplements_header):
-    raw_suppliment_data = supplement_data_editor.value
-    if raw_suppliment_data is None:
-        shaped_suppliment_data = None
+    raw_supplement_data = supplement_data_editor.value
+    if raw_supplement_data is None or raw_supplement_data == [""]:
+        shaped_supplement_data = None
     else:
-        shaped_suppliment_data = [
-            {"name": suppliment_name}
-            for suppliment_name in raw_suppliment_data[supplements_header[0]]
+        shaped_supplement_data = [
+            {"name": supplement_name}
+            for supplement_name in raw_supplement_data[supplements_header[0]]
         ]
-    return shaped_suppliment_data
+    return shaped_supplement_data
 
 
 @app.cell
-def _(fetch_suppliment_schedule_from_api, mo, shaped_suppliment_data):
-    import asyncio
+def _(fetch_supplement_schedule_from_api, mo, shaped_supplement_data):
     import time
 
-    if shaped_suppliment_data is None:
+    if shaped_supplement_data is None:
         mo.output.append(mo.md("## Nothing to send yet. Hit Submit."))
         schedule_json_or_none = None
     else:
         with mo.status.spinner(title="Sending. Waiting for response...") as spinner:
             start_time = time.perf_counter()
-            fetch_result = fetch_suppliment_schedule_from_api(shaped_suppliment_data)
+            fetch_result = fetch_supplement_schedule_from_api(shaped_supplement_data)
             end_time = time.perf_counter()
             response_time = round((end_time - start_time) * 1000)
 
@@ -110,14 +111,14 @@ def _(mo, schedule_json_or_none):
     if schedule_json_or_none is not None:
         table_ready_data = []
         for slot in schedule_json_or_none["schedule"].items():
-            slot_name, suppliments = slot
+            slot_name, supplements = slot
             row = {"Time Slot": slot_name} | {
-                f"Suppliment {i + 1}": suppliment["name"]
-                for i, suppliment in enumerate(suppliments)
+                f"Supplement {i + 1}": supplement["name"]
+                for i, supplement in enumerate(supplements)
             }
             table_ready_data.append(row)
 
-        header = mo.md("## Suppliment Schedule")
+        header = mo.md("## Supplement Schedule")
         total_conflicts = (
             f"{schedule_json_or_none['DEV_total_conflict_count']} schedule conflicts"
         )
@@ -125,7 +126,7 @@ def _(mo, schedule_json_or_none):
             data=table_ready_data, selection=None, label=total_conflicts
         )
         layout = mo.vstack([header, table])
-        mo.output.append(mo.md("## Suppliment Schedule"))
+        mo.output.append(mo.md("## Supplement Schedule"))
         mo.output.append(table)
 
     return

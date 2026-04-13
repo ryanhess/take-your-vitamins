@@ -4,7 +4,7 @@ from models import (
     IngredientInRequest,
     IngredientInResponse,
     TimeSlots,
-    SupplimentPlanResponse,
+    SupplementPlanResponse,
 )
 from sample_data import ingredients
 from numpy import array, where
@@ -97,7 +97,7 @@ def select_bin_from_multiple_best(counts: list[int], min_count: int) -> int:
     return the_bin
 
 
-def bin_suppliments_by_constraints(ingreds: list[Ingredient]) -> BinList:
+def bin_supplements_by_constraints(ingreds: list[Ingredient]) -> BinList:
     """
     bins[0] is breakfast, bins[1] is lunch, bins[2] is dinner.
     """
@@ -152,8 +152,8 @@ def get_total_conflict_count(before: BinList, after: BinList) -> int:
     return total_count
 
 
-def transform_to_response(before: BinList, after: BinList) -> SupplimentPlanResponse:
-    response = SupplimentPlanResponse(
+def transform_to_response(before: BinList, after: BinList) -> SupplementPlanResponse:
+    response = SupplementPlanResponse(
         DEV_total_conflict_count=get_total_conflict_count(before, after),
         schedule=TimeSlots(
             before_breakfast=get_response_ingredients_from_bin(before[0]),
@@ -169,15 +169,15 @@ def transform_to_response(before: BinList, after: BinList) -> SupplimentPlanResp
 
 def create_schedule(
     request: list[IngredientInRequest],
-) -> SupplimentPlanResponse:
+) -> SupplementPlanResponse:
     (request_sups_with_constraints, names_not_in_db) = apply_constraints_to_sups(
         request
     )
     before_constrained_sups, after_constrained_sups = split_sups_before_after(
         request_sups_with_constraints
     )
-    before_bins = bin_suppliments_by_constraints(before_constrained_sups)
-    after_bins = bin_suppliments_by_constraints(after_constrained_sups)
+    before_bins = bin_supplements_by_constraints(before_constrained_sups)
+    after_bins = bin_supplements_by_constraints(after_constrained_sups)
     response = transform_to_response(before=before_bins, after=after_bins)
     response.supplements_not_found = names_not_in_db
     print(response)  # debug
