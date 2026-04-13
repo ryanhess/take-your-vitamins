@@ -35,7 +35,12 @@ def apply_constraints_to_sups(
 
     for name in ingredient_names_in_request:
         # intentionally allow a key error to raise if name isnt in ingredients. For now.
-        attributes_from_database = ingredients[name]
+        attributes_from_database = ingredients.get(name)
+
+        if attributes_from_database is None:
+            print(f"{name} not found in database. Dropping from result.")
+            continue
+
         database_take_not_with = attributes_from_database.take_not_with
 
         narrowed_take_not_with = list(
