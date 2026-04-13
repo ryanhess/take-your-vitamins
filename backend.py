@@ -1,6 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from typing import Literal
+import scheduler
 
 app = FastAPI()
 
@@ -156,30 +157,11 @@ class SupplimentPlanResponse(BaseModel):
 
 @app.post("/")
 async def make_viamin_schedule(
-    suppliment_data: list[IngredientInPlanRequest],
+    supplement_data: list[IngredientInPlanRequest],
 ) -> SupplimentPlanResponse:
-    if suppliment_data == []:
+    if supplement_data == []:
         return SupplimentPlanResponse()
 
-    print(suppliment_data)
-
-    response_schedule = SupplimentPlanResponse(
-        before_breakfast=[
-            IngredientInPlanRequest(name="Vitamin B12"),
-            IngredientInPlanRequest(name="Mugwort"),
-        ],
-        after_breakfast=[IngredientInPlanRequest(name="Vitamin C")],
-        before_lunch=[
-            IngredientInPlanRequest(name="Alpha-lipoic acid"),
-            IngredientInPlanRequest(name="Mugwort"),
-            IngredientInPlanRequest(name="Apple Cider Vinegar"),
-        ],
-        after_lunch=[IngredientInPlanRequest(name="Omega-3")],
-        before_dinner=[IngredientInPlanRequest(name="B3")],
-        after_dinner=[
-            IngredientInPlanRequest(name="Mugwort"),
-            IngredientInPlanRequest(name="Lion's Mane"),
-        ],
-    )
+    response_schedule = scheduler.create_schedule(supplement_data)
 
     return response_schedule
