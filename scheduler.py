@@ -29,35 +29,46 @@ type Bin = set[Ingredient]
 type BinList = list[Bin]
 
 
+def get_relevant_ingred_obj_from_valid_name(
+    valid_name: str, request_names: list[str], attributes: IngredientAttributes
+) -> Ingredient:
+    database_take_not_with = attributes.take_not_with
+
+    narrowed_take_not_with = database_take_not_with.intersection(request_names)
+
+    new_attributes = IngredientAttributes(
+        take_not_with=narrowed_take_not_with,
+        before_after_food=attributes.before_after_food,
+    )
+
+    ingredient_object_with_relevant_attr = Ingredient(
+        name=valid_name, attributes=new_attributes
+    )
+    return ingredient_object_with_relevant_attr
+
+
 def apply_constraints_to_sups(
     request: list[IngredientInRequest],
-) -> list[Ingredient]:
-    ingredient_names_in_request = [ingred.name for ingred in request]
-    ingredient_objects_from_request = []
+) -> tuple[list[Ingredient], list[str]]:
+    ingred_names_in_request = [ingred.name for ingred in request]
+    ingred_objects_from_request = []
+    names_not_found = []
 
-    for name in ingredient_names_in_request:
-        # intentionally allow a key error to raise if name isnt in ingredients. For now.
-        attributes_from_database = ingredients.get(name)
+    for name in ingred_names_in_request:
+        stored_ingred_attr = ingredients.get(name)
 
-        if attributes_from_database is None:
-            print(f"{name} not found in database. Dropping from result.")
-            continue
+        if stored_ingred_attr is None:
+            print(f"{name} not found in database.")
+            names_not_found.append(name)
+        else:
+            relevant_ingred_obj = get_relevant_ingred_obj_from_valid_name(
+                valid_name=name,
+                request_names=ingred_names_in_request,
+                attributes=stored_ingred_attr,
+            )
+            ingred_objects_from_request.append(relevant_ingred_obj)
 
-        database_take_not_with = attributes_from_database.take_not_with
-
-        narrowed_take_not_with = database_take_not_with.intersection(
-            ingredient_names_in_request
-        )
-
-        new_attributes = IngredientAttributes(
-            take_not_with=narrowed_take_not_with,
-            before_after_food=attributes_from_database.before_after_food,
-        )
-
-        new_ingredient_object = Ingredient(name=name, attributes=new_attributes)
-        ingredient_objects_from_request.append(new_ingredient_object)
-
-    return ingredient_objects_from_request
+    return ingred_objects_from_request, names_not_found
 
 
 def split_sups_before_after(
@@ -159,11 +170,15 @@ def transform_to_response(before: BinList, after: BinList) -> SupplimentPlanResp
 def create_schedule(
     request: list[IngredientInRequest],
 ) -> SupplimentPlanResponse:
-    request_sups_with_constraints = apply_constraints_to_sups(request)
+    (request_sups_with_constraints, names_not_in_db) = apply_constraints_to_sups(
+        request
+    )
     before_constrained_sups, after_constrained_sups = split_sups_before_after(
         request_sups_with_constraints
     )
     before_bins = bin_suppliments_by_constraints(before_constrained_sups)
     after_bins = bin_suppliments_by_constraints(after_constrained_sups)
     response = transform_to_response(before=before_bins, after=after_bins)
+    response.supplements_not_found = names_not_in_db
+    print(response)  # debug
     return response
