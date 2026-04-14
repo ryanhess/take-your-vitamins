@@ -1,5 +1,3 @@
-from curses import raw
-
 import marimo
 
 __generated_with = "0.23.0"
@@ -89,7 +87,7 @@ def _(fetch_supplement_schedule_from_api, mo, shaped_supplement_data):
         mo.output.append(mo.md("## Nothing to send yet. Hit Submit."))
         schedule_json_or_none = None
     else:
-        with mo.status.spinner(title="Sending. Waiting for response...") as spinner:
+        with mo.status.spinner(title="Sending. Waiting for response..."):
             start_time = time.perf_counter()
             fetch_result = fetch_supplement_schedule_from_api(shaped_supplement_data)
             end_time = time.perf_counter()
