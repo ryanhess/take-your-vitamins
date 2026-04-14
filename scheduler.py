@@ -180,5 +180,5 @@ def create_schedule(
     after_bins = bin_suppliments_by_constraints(after_constrained_sups)
     response = transform_to_response(before=before_bins, after=after_bins)
     response.supplements_not_found = names_not_in_db
-    print(response)
+    print(response)  # debug
     return response
