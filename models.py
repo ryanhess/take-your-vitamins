@@ -28,3 +28,4 @@ class TimeSlots(BaseModel):
 class SupplimentPlanResponse(BaseModel):
     DEV_total_conflict_count: int = 0
     schedule: TimeSlots = TimeSlots()
+    supplements_not_found: list[str] = []

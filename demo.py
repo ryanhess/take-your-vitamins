@@ -18,7 +18,7 @@ def _(mo, supplements_header):
 
     @dataclass
     class DefaultInputs:
-        blank = []
+        blank = [""]
         default_test_input = [
             "Calcium",
             "Iron",
