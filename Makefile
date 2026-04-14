@@ -1,4 +1,9 @@
-.PHONY: run, run-tunnel, run-backend, run-marimo
+.PHONY: dev
 
-run:
-	@echo "run"
+RUN = uv run honcho start backend demo-frontend
+
+dev:
+	$(RUN)
+	
+dev-tunnel:
+	$(RUN) tunnel
