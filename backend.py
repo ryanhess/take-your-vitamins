@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from models import IngredientInRequest, SupplimentPlanResponse
+from models import IngredientInRequest, SupplementPlanResponse
 import scheduler
 
 
@@ -9,9 +9,9 @@ app = FastAPI()
 @app.post("/")
 async def make_viamin_schedule(
     supplement_data: list[IngredientInRequest],
-) -> SupplimentPlanResponse:
+) -> SupplementPlanResponse:
     if supplement_data == []:
-        return SupplimentPlanResponse()
+        return SupplementPlanResponse()
 
     response_schedule = scheduler.create_schedule(supplement_data)
 

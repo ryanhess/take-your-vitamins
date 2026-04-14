@@ -25,7 +25,7 @@ class TimeSlots(BaseModel):
     after_dinner: list[IngredientInResponse] = []
 
 
-class SupplimentPlanResponse(BaseModel):
+class SupplementPlanResponse(BaseModel):
     DEV_total_conflict_count: int = 0
     schedule: TimeSlots = TimeSlots()
     supplements_not_found: list[str] = []
