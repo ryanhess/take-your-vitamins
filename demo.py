@@ -133,12 +133,11 @@ def _(mo, schedule_json_or_none):
             + "\n".join(f"- {ingred}" for ingred in supplements_not_in_db)
         )
 
+        layout_stack = [header, table]
         if supplements_not_in_db:
-            stack = [header, table, ui_of_not_in_db]
-        else:
-            stack = [header, table]
+            layout_stack.append(ui_of_not_in_db)
 
-        layout = mo.vstack(stack)
+        layout = mo.vstack(layout_stack)
         mo.output.append(layout)
 
     return
