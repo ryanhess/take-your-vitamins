@@ -122,6 +122,8 @@ def _(mo, schedule_json_or_none):
         total_conflicts = (
             f"{schedule_json_or_none['DEV_total_conflict_count']} schedule conflicts"
         )
+        supplements_not_in_db = schedule_json_or_none["supplements_not_found"]
+        print(supplements_not_in_db)
         table = mo.ui.table(
             data=table_ready_data, selection=None, label=total_conflicts
         )
