@@ -8,7 +8,7 @@ app = marimo.App(width="medium")
 
 @app.cell
 def _():
-    supplements_header = ["supplements (ingredient name)"]
+    supplements_header = "supplements (ingredient name)"
     return (supplements_header,)
 
 
@@ -36,7 +36,7 @@ def _(mo, supplements_header):
 
     # fmt: off
     supplement_data = {
-        supplements_header[0]: DefaultInputs.blank
+        supplements_header: DefaultInputs.default_test_input
     }
     # fmt: on
     supplement_data_editor = mo.ui.data_editor(
@@ -71,12 +71,12 @@ def _():
 @app.cell
 def _(mo, supplement_data_editor, supplements_header):
     raw_supplement_data = supplement_data_editor.value
-    if raw_supplement_data is None or raw_supplement_data == [""]:
+    if raw_supplement_data is None or raw_supplement_data[supplements_header] == [""]:
         shaped_supplement_data = None
     else:
         shaped_supplement_data = [
             {"name": supplement_name}
-            for supplement_name in raw_supplement_data[supplements_header[0]]
+            for supplement_name in raw_supplement_data[supplements_header]
         ]
     return shaped_supplement_data
 
@@ -122,14 +122,23 @@ def _(mo, schedule_json_or_none):
         total_conflicts = (
             f"{schedule_json_or_none['DEV_total_conflict_count']} schedule conflicts"
         )
-        supplements_not_in_db = schedule_json_or_none["supplements_not_found"]
-        print(supplements_not_in_db)
+        print(header)
         table = mo.ui.table(
             data=table_ready_data, selection=None, label=total_conflicts
         )
-        layout = mo.vstack([header, table])
-        mo.output.append(mo.md("## Supplement Schedule"))
-        mo.output.append(table)
+
+        supplements_not_in_db = schedule_json_or_none["supplements_not_found"]
+        ui_of_not_in_db = mo.md(
+            "### Supplements Not in Database:\n"
+            + "\n".join(f"- {ingred}" for ingred in supplements_not_in_db)
+        )
+
+        layout_stack = [header, table]
+        if supplements_not_in_db:
+            layout_stack.append(ui_of_not_in_db)
+
+        layout = mo.vstack(layout_stack)
+        mo.output.append(layout)
 
     return
 
