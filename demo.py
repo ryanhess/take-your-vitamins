@@ -108,6 +108,7 @@ def _(fetch_supplement_schedule_from_api, mo, shaped_supplement_data):
 def _(mo, schedule_json_or_none):
     if schedule_json_or_none is not None:
         table_ready_data = []
+        mo.output.append(schedule_json_or_none)
         for slot in schedule_json_or_none["schedule"].items():
             slot_name, supplements = slot
             row = {"Time Slot": slot_name} | {
