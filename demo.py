@@ -112,7 +112,7 @@ def _(mo, schedule_json_or_none):
         for slot in schedule_json_or_none["schedule"].items():
             slot_name, supplements = slot
             row = {"Time Slot": slot_name} | {
-                f"Supplement {i + 1}": supplement["name"]
+                f"Supplement {i + 1}": supplement
                 for i, supplement in enumerate(supplements)
             }
             table_ready_data.append(row)
