@@ -121,9 +121,30 @@ def _(mo, schedule_json_or_none):
         total_conflicts = (
             f"{schedule_json_or_none['DEV_total_conflict_count']} schedule conflicts"
         )
-        print(header)
+
+        max_supplements = max(len(row) - 1 for row in table_ready_data)
+        supplement_columns = [f"Supplement {i + 1}" for i in range(max_supplements)]
+
+        format_mapping = {col: lambda val: val["name"] for col in supplement_columns}
+
+        def hover_template(row_id, column_name, value):
+            supplement_obj = value
+
+            constraints = supplement_obj["constraints"]
+            take_not_with = constraints["take_not_with"]
+
+            tooltip_text = [
+                f"Take {constraints['before_after_food']} food.",
+                "Do not take with:",
+            ] + ["- " + name for name in take_not_with]
+
+            return "\n".join(tooltip_text)
+
         table = mo.ui.table(
-            data=table_ready_data, selection=None, label=total_conflicts
+            data=table_ready_data,
+            format_mapping=format_mapping,
+            hover_template=hover_template,
+            label=total_conflicts,
         )
 
         supplements_not_in_db = schedule_json_or_none["supplements_not_found"]
