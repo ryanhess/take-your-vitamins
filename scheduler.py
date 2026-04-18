@@ -100,7 +100,7 @@ def get_best_bins(counts: list[int], target_count: int) -> list[int]:
     return list(best_bins)
 
 
-def select_bin_from_multiple_best(
+def select_bin_from_choices_by_ingred_name(
     counts: list[int], min_conflict_count: int, name: str
 ) -> int:
     best_bins = get_best_bins(counts, min_conflict_count)
@@ -145,13 +145,17 @@ def bin_supplements_by_constraints(ingreds: list[Ingredient]) -> BinList:
 
         min_conflicts = min(conflict_counts)
 
-        # fmt: off
-        target_index = select_bin_from_multiple_best(
-            counts=conflict_counts,
-            min_conflict_count=min_conflicts,
-            name=ingred.name
-        )
-        # fmt: on
+        if DISTRIBUTE_SLOTS:
+            # fmt: off
+            target_index = select_bin_from_choices_by_ingred_name(
+                counts=conflict_counts,
+                min_conflict_count=min_conflicts,
+                name=ingred.name
+            )
+            # fmt: on
+        else:
+            # just groups the answers towards the morning.
+            target_index = bins.index(min_conflicts)
 
         ingred.DEV_conflict_count = min_conflicts
         bins[target_index].add(ingred)
