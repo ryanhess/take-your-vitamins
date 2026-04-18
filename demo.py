@@ -151,35 +151,37 @@ def _(mo, schedule_json_or_none):
 
 @app.cell
 def _(mo, table):
-    if table is None or not table.value:
+    if table is None:
         mo.stop(True)
     else:
-        cell_val = table.value[0]
-        column_name = cell_val.column
-        if column_name == "Time Slot":
+        if table.value:
+            table_cell = table.value[0]
+            column_name = table_cell.column
+        else:
+            table_cell = None
+            column_name = None
+
+        if not column_name or column_name == "Time Slot":
             mo.output.append(
                 mo.md("### Select a supplement to view its requirements...")
             )
         else:
-            supplement = cell_val["value"]
+            supplement = table_cell["value"]  # type: ignore --supplement guaranteed to have a "value"
             constraints = supplement["constraints"]
             mo.output.append(
-                mo.md(
-                    f"Take {supplement['name']} {constraints['before_after_food']} food.\n"
-                    + "Do not take with:"
+                mo.plain_text(
+                    f"**{supplement['name']}**\n"
+                    + f"  Take {constraints['before_after_food']} food.\n"
+                    + f"  Do not take with:\n"
+                    + "\n".join(
+                        f"    - {name}" for name in constraints["take_not_with"]
+                    )
                 )
-            )
-            mo.output.append(
-                mo.md("\n".join([f"- {name}" for name in constraints["take_not_with"]]))
             )
 
         # mo.output.append(table.value)
     return
 
-
-# [
-#     #   "TableCell(row='2', column='Supplement 3', value={'name': 'Green Tea Extract', 'constraints': {'take_not_with': ['Iron'], 'before_after_food': 'before'}, 'DEV_conflict_count': 0})"
-# ]
 
 if __name__ == "__main__":
     app.run()
