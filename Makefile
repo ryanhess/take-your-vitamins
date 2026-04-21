@@ -1,12 +1,16 @@
 .PHONY: dev
 
-RUN = uv run honcho start backend demo-frontend
+RUN_BACKEND = uv run honcho start backend
+RUN_DEMO = RUN_BACKEND demo-frontend
 
 dev:
-	$(RUN)
-	
+	$(RUN_DEMO)
+
+run-backend:
+	$(RUN_BACKEND)
+
 dev-tunnel:
-	$(RUN) tunnel
+	$(RUN_DEMO) tunnel
 
 db-start:
 	docker compose up database -d
@@ -21,3 +25,9 @@ db-stop:
 db-drop: db-stop
 	docker volume rm -f unnamed-budget-app_pgdata > /dev/null || true
 	@echo "database container stopped, volume deleted"
+
+db-gen-mig: db-start db-migrate
+	@uv run alembic revision --autogenerate -m "$(m)"
+
+db-migrate: db-start
+	@uv run alembic upgrade head
