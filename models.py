@@ -4,7 +4,13 @@ from typing import Literal
 from enum import Enum
 
 from database import OrmBase
-from sqlalchemy import Identity, Enum as SqlAlchEnum
+from sqlalchemy import (
+    Identity,
+    Enum as SqlAlchEnum,
+    ForeignKey,
+    PrimaryKeyConstraint,
+    CheckConstraint,
+)
 from sqlalchemy.orm import Mapped, mapped_column
 
 
@@ -49,4 +55,21 @@ class IngredientOrm(OrmBase):
     name: Mapped[str]
     before_after_food: Mapped[BeforeAfterFood] = mapped_column(
         SqlAlchEnum(BeforeAfterFood)
+    )
+
+
+class IngredientConflicts(OrmBase):
+    __tablename__ = "ingredient_conflicts"
+    __table_args__ = (
+        PrimaryKeyConstraint("id_a", "id_b"),
+        CheckConstraint("id_a != id_b", name="id_a_not_equal_to_id_b"),
+        CheckConstraint("id_a < id_b", name="id_a_less_than_id_b"),
+    )
+
+    id_a: Mapped[int] = mapped_column(
+        ForeignKey("ingredients.id", ondelete="CASCADE"), nullable=False
+    )
+
+    id_b: Mapped[int] = mapped_column(
+        ForeignKey("ingredients.id", ondelete="CASCADE"), nullable=False
     )
