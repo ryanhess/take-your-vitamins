@@ -34,10 +34,3 @@ class SupplementPlanResponse(BaseModel):
     DEV_total_conflict_count: int = 0
     schedule: TimeSlots = TimeSlots()
     supplements_not_found: list[str] = []
-
-
-class TestOrm(OrmBase):
-    __tablename__ = "test"
-    id: Mapped[int] = mapped_column(Identity(always=True), primary_key=True)
-    name: Mapped[str] = mapped_column()
-    age: Mapped[int] = mapped_column()

@@ -18,12 +18,3 @@ async def make_viamin_schedule(
     response_schedule = scheduler.create_schedule(supplement_data)
 
     return response_schedule
-
-
-@app.get("/test-orm", response_model=None)
-async def add_test_orm(name: str, age: int, db: AsyncDb) -> TestOrm:
-    new_test = TestOrm(name=name, age=age)
-    db.add(new_test)
-    await db.flush()
-    await db.commit()
-    return new_test
