@@ -1,7 +1,6 @@
 from database import AsyncDb
 from fastapi import FastAPI
 from models import IngredientInRequest, SupplementPlanResponse
-from models import TestOrm
 import scheduler
 
 
