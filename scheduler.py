@@ -7,8 +7,12 @@ from models import (
     SupplementPlanResponse,
 )
 from sample_data import ingredients
-from numpy import array, where
+from numpy import array, array_split, where
 from numpy.random import choice
+from string import ascii_lowercase as ascii
+
+
+DISTRIBUTE_SLOTS = True
 
 
 @dataclass
@@ -90,10 +94,30 @@ def bin_conflict_count(bin: Bin, take_not_with: set[str]) -> int:
     return num_conflicts
 
 
-def select_bin_from_multiple_best(counts: list[int], min_count: int) -> int:
+def get_best_bins(counts: list[int], target_count: int) -> list[int]:
     counts_arr = array(counts)
-    (best_bins,) = where(counts_arr == min_count)
-    the_bin = choice(best_bins)
+    (best_bins,) = where(counts_arr == target_count)
+    return list(best_bins)
+
+
+def select_best_bin_by_ingred_name(
+    counts: list[int], min_conflict_count: int, name: str
+) -> int:
+    best_bins = get_best_bins(counts, min_conflict_count)
+    number_of_best_bins = len(best_bins)
+    letter_index_groups = array_split(range(26), number_of_best_bins)
+    first_char_lowercase = name[0].lower()
+    first_char_letter_index = ord(first_char_lowercase) - ord("a")
+
+    the_bin = None
+    for i, group in enumerate(letter_index_groups):
+        if first_char_letter_index in group:
+            the_bin = best_bins[i]
+            break
+
+    if the_bin is None:
+        the_bin = best_bins[-1]
+
     return the_bin
 
 
@@ -120,7 +144,18 @@ def bin_supplements_by_constraints(ingreds: list[Ingredient]) -> BinList:
             conflict_counts.append(bin_conflict_count(bin, take_not_with))
 
         min_conflicts = min(conflict_counts)
-        target_index = select_bin_from_multiple_best(conflict_counts, min_conflicts)
+
+        if DISTRIBUTE_SLOTS:
+            # fmt: off
+            target_index = select_best_bin_by_ingred_name(
+                counts=conflict_counts,
+                min_conflict_count=min_conflicts,
+                name=ingred.name
+            )
+            # fmt: on
+        else:
+            # just groups the answers towards the morning.
+            target_index = conflict_counts.index(min_conflicts)
 
         ingred.DEV_conflict_count = min_conflicts
         bins[target_index].add(ingred)
