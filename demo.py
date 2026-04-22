@@ -11,7 +11,7 @@ def _():
 
 
 @app.cell
-def _(mo, supplements_header):
+def _(supplements_header):
     import marimo as mo
     from sample_data import ingredients
     from dataclasses import dataclass
@@ -67,7 +67,7 @@ def _():
 
 
 @app.cell
-def _(mo, supplement_data_editor, supplements_header):
+def _(supplement_data_editor, supplements_header):
     raw_supplement_data = supplement_data_editor.value
     if raw_supplement_data is None or raw_supplement_data[supplements_header] == [""]:
         shaped_supplement_data = None
@@ -76,7 +76,7 @@ def _(mo, supplement_data_editor, supplements_header):
             {"name": supplement_name}
             for supplement_name in raw_supplement_data[supplements_header]
         ]
-    return shaped_supplement_data
+    return (shaped_supplement_data,)
 
 
 @app.cell
@@ -100,15 +100,13 @@ def _(fetch_supplement_schedule_from_api, mo, shaped_supplement_data):
             err_to_display = fetch_result
             schedule_json_or_none = None
             mo.output.append(err_to_display)
-
-    return schedule_json_or_none
+    return (schedule_json_or_none,)
 
 
 @app.cell
 def _(mo, schedule_json_or_none):
     if schedule_json_or_none is not None:
         table_ready_data = []
-        print(schedule_json_or_none)
         for slot in schedule_json_or_none["schedule"].items():
             slot_name, supplements = slot
             row = {"Time Slot": slot_name} | {
@@ -131,6 +129,7 @@ def _(mo, schedule_json_or_none):
             data=table_ready_data,
             format_mapping=format_mapping,
             label=total_conflicts,
+            selection="single-cell",
         )
 
         supplements_not_in_db = schedule_json_or_none["supplements_not_found"]
@@ -145,7 +144,17 @@ def _(mo, schedule_json_or_none):
 
         layout = mo.vstack(layout_stack)
         mo.output.append(layout)
+    else:
+        table = None
+    return (table,)
 
+
+@app.cell
+def _(mo, table):
+    if table is None:
+        mo.stop(True)
+    else:
+        mo.output.append(table.value)
     return
 
 
