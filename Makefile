@@ -1,7 +1,7 @@
 .PHONY: dev
 
 RUN_BACKEND = uv run honcho start backend
-RUN_DEMO = RUN_BACKEND demo-frontend
+RUN_DEMO = $(RUN_BACKEND) demo-frontend
 
 dev:
 	$(RUN_DEMO)
