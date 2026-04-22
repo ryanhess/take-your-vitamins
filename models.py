@@ -13,6 +13,7 @@ class IngredientInRequest(BaseModel):
 
 class IngredientInResponse(BaseModel):
     name: str
+    constraints: IngredientAttributes
     DEV_conflict_count: int = 0
 
 

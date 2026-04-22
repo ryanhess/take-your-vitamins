@@ -135,7 +135,8 @@ def get_response_ingredients_from_bin(
     ingredients_result = [
         IngredientInResponse(
             name=sup.name,
-            DEV_conflict_count=sup.DEV_conflict_count
+            DEV_conflict_count=sup.DEV_conflict_count,
+            constraints = sup.attributes
         ) for sup in bin
     ]
     # fmt: on
