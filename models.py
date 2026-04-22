@@ -11,6 +11,7 @@ from sqlalchemy import (
     PrimaryKeyConstraint,
     CheckConstraint,
     UniqueConstraint,
+    text,
 )
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -48,6 +49,22 @@ class SupplementPlanResponse(BaseModel):
 class BeforeAfterFood(str, Enum):
     before = "before"
     after = "after"
+
+
+def _query_take_not_with(id: int, db_session) -> set[int]:
+    result = (
+        db_session.execute(
+            text("""
+            SELECT id_b FROM take_not_with WHERE id_a = :id \
+            UNION \
+            SELECT id_a FROM take_not_with WHERE id_b = :id;
+        """),
+            {"id": id},
+        )
+        .scalars()
+        .all()
+    )
+    return set(result)
 
 
 class IngredientOrm(OrmBase):
