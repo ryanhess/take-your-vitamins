@@ -10,6 +10,7 @@ from sqlalchemy import (
     ForeignKey,
     PrimaryKeyConstraint,
     CheckConstraint,
+    UniqueConstraint,
 )
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -51,8 +52,9 @@ class BeforeAfterFood(str, Enum):
 
 class IngredientOrm(OrmBase):
     __tablename__ = "ingredients"
+    __table_args__ = (UniqueConstraint("name", name="ingredient_name_unique"),)
     id: Mapped[int] = mapped_column(Identity(always=True), primary_key=True)
-    name: Mapped[str]
+    name: Mapped[str] = mapped_column()
     before_after_food: Mapped[BeforeAfterFood] = mapped_column(
         SqlAlchEnum(BeforeAfterFood)
     )
