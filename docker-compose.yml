@@ -1,3 +1,5 @@
+name: vitapp
+
 services:
   database:
     image: postgres:18

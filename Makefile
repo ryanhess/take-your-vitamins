@@ -23,7 +23,7 @@ db-stop:
 	docker compose down database
 
 db-drop: db-stop
-	docker volume rm -f unnamed-budget-app_pgdata > /dev/null || true
+	docker volume rm -f vitapp_pgdata > /dev/null || true
 	@echo "database container stopped, volume deleted"
 
 db-gen-mig: db-start db-migrate
