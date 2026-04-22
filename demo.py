@@ -127,23 +127,9 @@ def _(mo, schedule_json_or_none):
 
         format_mapping = {col: lambda val: val["name"] for col in supplement_columns}
 
-        def hover_template(row_id, column_name, value):
-            supplement_obj = value
-
-            constraints = supplement_obj["constraints"]
-            take_not_with = constraints["take_not_with"]
-
-            tooltip_text = [
-                f"Take {constraints['before_after_food']} food.",
-                "Do not take with:",
-            ] + ["- " + name for name in take_not_with]
-
-            return "\n".join(tooltip_text)
-
         table = mo.ui.table(
             data=table_ready_data,
             format_mapping=format_mapping,
-            hover_template=hover_template,
             label=total_conflicts,
         )
 
