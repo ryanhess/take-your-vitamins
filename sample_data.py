@@ -1,6 +1,6 @@
 from enum import Enum
 
-from models import IngredientAttributes
+from models import IngredientOrm
 
 
 class Dataset(Enum):
@@ -18,141 +18,135 @@ ingredient_datasets = {
     Dataset.EMPTY: {},
     ### SET 1--should produce exactly one in each category if I ask for all of these ###
     Dataset.BASE: {
-        "Vitamin C": IngredientAttributes(
+        "Vitamin C": IngredientOrm(
             take_not_with={"Vitamin B12", "Vitamin D"}, before_after_food="before"
         ),
-        "Omega 3": IngredientAttributes(
+        "Omega 3": IngredientOrm(
             take_not_with={"Vitamin A", "Mugwort"}, before_after_food="after"
         ),
-        "Vitamin B12": IngredientAttributes(
+        "Vitamin B12": IngredientOrm(
             take_not_with={"Vitamin C", "Vitamin D"}, before_after_food="before"
         ),
-        "Vitamin A": IngredientAttributes(
+        "Vitamin A": IngredientOrm(
             take_not_with={"Omega 3", "Mugwort"}, before_after_food="after"
         ),
-        "Vitamin D": IngredientAttributes(
+        "Vitamin D": IngredientOrm(
             take_not_with={"Vitamin C", "Vitamin B12"}, before_after_food="before"
         ),
-        "Mugwort": IngredientAttributes(
+        "Mugwort": IngredientOrm(
             take_not_with={"Vitamin A", "Omega 3"}, before_after_food="after"
         ),
     },
     ### SET 2--Exercise the algorithm (generated)###
     Dataset.EXERCISE: {
         # --- Cluster 1: Classic vitamin conflicts (dense) ---
-        "Vitamin C": IngredientAttributes(
+        "Vitamin C": IngredientOrm(
             take_not_with={"Vitamin B12", "Copper", "Niacin"},
             before_after_food="before",
         ),
-        "Vitamin B12": IngredientAttributes(
+        "Vitamin B12": IngredientOrm(
             take_not_with={"Vitamin C", "Folate", "Vitamin B6"},
             before_after_food="before",
         ),
-        "Folate": IngredientAttributes(
+        "Folate": IngredientOrm(
             take_not_with={"Vitamin B12", "Green Tea Extract"},
             before_after_food="before",
         ),
-        "Vitamin B6": IngredientAttributes(
+        "Vitamin B6": IngredientOrm(
             take_not_with={"Vitamin B12", "Caffeine"}, before_after_food="before"
         ),
-        "Niacin": IngredientAttributes(
+        "Niacin": IngredientOrm(
             take_not_with={"Vitamin C", "Manganese"}, before_after_food="before"
         ),
         # --- Cluster 2: Fat-soluble vitamins competing for absorption ---
-        "Vitamin D": IngredientAttributes(
+        "Vitamin D": IngredientOrm(
             take_not_with={"Vitamin K2", "Vitamin A"}, before_after_food="after"
         ),
-        "Vitamin A": IngredientAttributes(
+        "Vitamin A": IngredientOrm(
             take_not_with={"Vitamin D", "Vitamin E", "Retinol"},
             before_after_food="after",
         ),
-        "Vitamin E": IngredientAttributes(
+        "Vitamin E": IngredientOrm(
             take_not_with={"Vitamin A", "Vitamin K2", "Iron"}, before_after_food="after"
         ),
-        "Vitamin K2": IngredientAttributes(
+        "Vitamin K2": IngredientOrm(
             take_not_with={"Vitamin D", "Vitamin E"}, before_after_food="after"
         ),
-        "Retinol": IngredientAttributes(
+        "Retinol": IngredientOrm(
             take_not_with={"Vitamin A", "Fish Oil"}, before_after_food="after"
         ),
         # --- Cluster 3: Mineral conflicts (chain pattern) ---
-        "Calcium": IngredientAttributes(
+        "Calcium": IngredientOrm(
             take_not_with={"Iron", "Magnesium", "Zinc"}, before_after_food="after"
         ),
-        "Iron": IngredientAttributes(
+        "Iron": IngredientOrm(
             take_not_with={"Calcium", "Zinc", "Vitamin E", "Green Tea Extract"},
             before_after_food="before",
         ),
-        "Zinc": IngredientAttributes(
+        "Zinc": IngredientOrm(
             take_not_with={"Calcium", "Iron", "Copper"}, before_after_food="before"
         ),
-        "Magnesium": IngredientAttributes(
+        "Magnesium": IngredientOrm(
             take_not_with={"Calcium", "Manganese"}, before_after_food="after"
         ),
-        "Copper": IngredientAttributes(
+        "Copper": IngredientOrm(
             take_not_with={"Zinc", "Vitamin C", "NAC"}, before_after_food="before"
         ),
-        "Manganese": IngredientAttributes(
+        "Manganese": IngredientOrm(
             take_not_with={"Magnesium", "Calcium"}, before_after_food="before"
         ),
         # --- Cluster 4: Herbal/extract conflicts ---
-        "Green Tea Extract": IngredientAttributes(
+        "Green Tea Extract": IngredientOrm(
             take_not_with={"Iron", "Folate", "Beta-Alanine"}, before_after_food="before"
         ),
-        "Turmeric": IngredientAttributes(
+        "Turmeric": IngredientOrm(
             take_not_with={"Ashwagandha", "Quercetin"}, before_after_food="after"
         ),
-        "Quercetin": IngredientAttributes(
+        "Quercetin": IngredientOrm(
             take_not_with={"Turmeric", "L-Theanine"}, before_after_food="before"
         ),
-        "Ashwagandha": IngredientAttributes(
+        "Ashwagandha": IngredientOrm(
             take_not_with={"Turmeric", "L-Theanine"}, before_after_food="after"
         ),
-        "Mugwort": IngredientAttributes(
+        "Mugwort": IngredientOrm(
             take_not_with={"Ashwagandha", "Fish Oil"}, before_after_food="after"
         ),
         # --- Cluster 5: Amino acids and performance supps ---
-        "NAC": IngredientAttributes(
+        "NAC": IngredientOrm(
             take_not_with={"Copper", "Zinc"}, before_after_food="before"
         ),
-        "L-Theanine": IngredientAttributes(
+        "L-Theanine": IngredientOrm(
             take_not_with={"Quercetin", "Ashwagandha"}, before_after_food="before"
         ),
-        "Beta-Alanine": IngredientAttributes(
+        "Beta-Alanine": IngredientOrm(
             take_not_with={"Green Tea Extract", "Taurine"}, before_after_food="before"
         ),
-        "Taurine": IngredientAttributes(
+        "Taurine": IngredientOrm(
             take_not_with={"Beta-Alanine"}, before_after_food="after"
         ),
-        "Creatine": IngredientAttributes(
+        "Creatine": IngredientOrm(
             take_not_with={"Caffeine"}, before_after_food="after"
         ),
-        "Caffeine": IngredientAttributes(
+        "Caffeine": IngredientOrm(
             take_not_with={"Creatine", "Iron", "L-Theanine"}, before_after_food="before"
         ),
         # --- A few with no conflicts (easy to place) ---
-        "Probiotics": IngredientAttributes(
-            take_not_with=set(), before_after_food="before"
-        ),
-        "Collagen": IngredientAttributes(
-            take_not_with=set(), before_after_food="after"
-        ),
-        "Fish Oil": IngredientAttributes(
-            take_not_with={"Retinol"}, before_after_food="after"
-        ),
+        "Probiotics": IngredientOrm(take_not_with=set(), before_after_food="before"),
+        "Collagen": IngredientOrm(take_not_with=set(), before_after_food="after"),
+        "Fish Oil": IngredientOrm(take_not_with={"Retinol"}, before_after_food="after"),
     },
     ## Delibterately cause conflicts
     Dataset.FORCE_CONFLICT: {
-        "Alpha": IngredientAttributes(
+        "Alpha": IngredientOrm(
             take_not_with={"Bravo", "Charlie", "Delta"}, before_after_food="before"
         ),
-        "Bravo": IngredientAttributes(
+        "Bravo": IngredientOrm(
             take_not_with={"Alpha", "Charlie", "Delta"}, before_after_food="before"
         ),
-        "Charlie": IngredientAttributes(
+        "Charlie": IngredientOrm(
             take_not_with={"Alpha", "Bravo", "Delta"}, before_after_food="before"
         ),
-        "Delta": IngredientAttributes(
+        "Delta": IngredientOrm(
             take_not_with={"Alpha", "Bravo", "Charlie"}, before_after_food="before"
         ),
     },

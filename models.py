@@ -18,6 +18,11 @@ from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.ext.asyncio import AsyncSession, async_object_session
 
 
+class BeforeAfterFood(str, Enum):
+    before = "before"
+    after = "after"
+
+
 class IngredientAttributes(BaseModel):
     take_not_with: set[str] = set()
     before_after_food: Literal["before", "after"]
@@ -25,6 +30,16 @@ class IngredientAttributes(BaseModel):
 
 class IngredientInRequest(BaseModel):
     name: str
+
+
+class IngredientResponse(BaseModel):
+    name: str
+    before_after_food: BeforeAfterFood
+    take_not_with: set[str] = set()
+    DEV_conflict_count: int = 0
+
+    class Config:
+        from_attributes = True
 
 
 class IngredientInResponse(BaseModel):
@@ -46,11 +61,6 @@ class SupplementPlanResponse(BaseModel):
     DEV_total_conflict_count: int = 0
     schedule: TimeSlots = TimeSlots()
     supplements_not_found: list[str] = []
-
-
-class BeforeAfterFood(str, Enum):
-    before = "before"
-    after = "after"
 
 
 async def _query_take_not_with(id: int, db_session: AsyncSession) -> set[Row]:
