@@ -10,9 +10,12 @@ from sqlalchemy import (
     ForeignKey,
     PrimaryKeyConstraint,
     CheckConstraint,
+    Row,
     UniqueConstraint,
+    text,
 )
 from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.ext.asyncio import AsyncSession, async_object_session
 
 
 class IngredientAttributes(BaseModel):
@@ -50,6 +53,25 @@ class BeforeAfterFood(str, Enum):
     after = "after"
 
 
+async def _query_take_not_with(id: int, db_session: AsyncSession) -> set[Row]:
+    result = await db_session.execute(
+        text("""
+            WITH conflict_ids AS (
+                SELECT id_b as id FROM ingredient_conflicts WHERE id_a = :id
+                UNION
+                SELECT id_a FROM ingredient_conflicts WHERE id_b = :id
+            )
+            SELECT i.* 
+            FROM ingredients i
+            JOIN conflict_ids c
+            ON c.id = i.id;
+        """),
+        {"id": id},
+    )
+    result_list = result.all()
+    return set(result_list)
+
+
 class IngredientOrm(OrmBase):
     __tablename__ = "ingredients"
     __table_args__ = (UniqueConstraint("name", name="ingredient_name_unique"),)
@@ -58,6 +80,18 @@ class IngredientOrm(OrmBase):
     before_after_food: Mapped[BeforeAfterFood] = mapped_column(
         SqlAlchEnum(BeforeAfterFood)
     )
+
+    async def take_not_with(self) -> set["IngredientOrm"]:
+        session = async_object_session(self)
+        if session is None:
+            return set()
+        else:
+            result = await _query_take_not_with(id=self.id, db_session=session)
+            ingredients_list = {
+                IngredientOrm(id=res[0], name=res[1], before_after_food=res[2])
+                for res in result
+            }
+            return ingredients_list
 
 
 class IngredientConflicts(OrmBase):
