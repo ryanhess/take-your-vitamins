@@ -7,7 +7,6 @@ from models import (
     TimeSlots,
     SupplementPlanResponse,
 )
-from sample_data import ingredients
 from numpy import array, array_split, where
 from numpy.random import choice
 from string import ascii_lowercase as ascii

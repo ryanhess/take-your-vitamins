@@ -11,15 +11,29 @@ def _():
 
 
 @app.cell
-def _(supplements_header):
+def _():
+    from database import async_session
+    from sqlalchemy import select
+    from models import IngredientOrm
+
+    async def _get_all_ingred_names_from_db() -> list[str]:
+        async with async_session() as db:
+            result = await db.execute(select(IngredientOrm.name))
+            return list(result.scalars().all())
+
+    all_ingredient_names = await _get_all_ingred_names_from_db()  # type: ignore
+    return (all_ingredient_names,)
+
+
+@app.cell
+def _(all_ingredient_names, supplements_header):
     import marimo as mo
-    from sample_data import ingredients
     from dataclasses import dataclass
 
     @dataclass
     class DefaultInputs:
         blank = [""]
-        default_test_input = [
+        default = [
             "Calcium",
             "Iron",
             "Zinc",
@@ -30,11 +44,11 @@ def _(supplements_header):
             "NAC",
             "Green Tea Extract",
         ]
-        entire_sample_database = list(ingredients.keys())
+        all_database = all_ingredient_names
 
     # fmt: off
     supplement_data = {
-        supplements_header: DefaultInputs.default_test_input
+        supplements_header: DefaultInputs.all_database
     }
     # fmt: on
     supplement_data_editor = mo.ui.data_editor(
