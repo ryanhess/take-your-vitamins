@@ -167,15 +167,14 @@ def _(mo, table):
             )
         else:
             supplement = table_cell["value"]  # type: ignore --supplement guaranteed to have a "value"
-            constraints = supplement["constraints"]
+            before_after_food = supplement["before_after_food"]
+            take_not_with = supplement["take_not_with"]
             mo.output.append(
                 mo.plain_text(
                     f"**{supplement['name']}**\n"
-                    + f"  Take {constraints['before_after_food']} food.\n"
+                    + f"  Take {before_after_food} food.\n"
                     + f"  Do not take with:\n"
-                    + "\n".join(
-                        f"    - {name}" for name in constraints["take_not_with"]
-                    )
+                    + "\n".join(f"    - {name}" for name in take_not_with)
                 )
             )
 

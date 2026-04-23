@@ -23,11 +23,6 @@ class BeforeAfterFood(str, Enum):
     after = "after"
 
 
-class IngredientAttributes(BaseModel):
-    take_not_with: set[str] = set()
-    before_after_food: BeforeAfterFood
-
-
 class IngredientInRequest(BaseModel):
     name: str
 
@@ -49,19 +44,13 @@ class IngredientResponse(BaseModel):
         return result
 
 
-class IngredientInResponse(BaseModel):
-    name: str
-    constraints: IngredientAttributes
-    DEV_conflict_count: int = 0
-
-
 class TimeSlots(BaseModel):
-    before_breakfast: list[IngredientInResponse] = []
-    after_breakfast: list[IngredientInResponse] = []
-    before_lunch: list[IngredientInResponse] = []
-    after_lunch: list[IngredientInResponse] = []
-    before_dinner: list[IngredientInResponse] = []
-    after_dinner: list[IngredientInResponse] = []
+    before_breakfast: list[IngredientResponse] = []
+    after_breakfast: list[IngredientResponse] = []
+    before_lunch: list[IngredientResponse] = []
+    after_lunch: list[IngredientResponse] = []
+    before_dinner: list[IngredientResponse] = []
+    after_dinner: list[IngredientResponse] = []
 
 
 class SupplementPlanResponse(BaseModel):
