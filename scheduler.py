@@ -1,8 +1,7 @@
 from dataclasses import dataclass
 from models import (
-    IngredientAttributes,
     IngredientInRequest,
-    IngredientInResponse,
+    IngredientResponse,
     IngredientResponse,
     IngredientOrm,
     TimeSlots,
@@ -19,21 +18,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 DISTRIBUTE_SLOTS = True
 
 
-@dataclass
-class Ingredient:
-    name: str
-    attributes: IngredientAttributes
-    DEV_conflict_count: int = 0
-
-    def __hash__(self):
-        return hash(self.name)
-
-    def __eq__(self, other):
-        is_instance = isinstance(other, Ingredient)
-        return is_instance and self.name == other.name
-
-
-type Bin = set[IngredientResponse]
+type Bin = list[IngredientResponse]
 type BinList = list[Bin]
 
 
@@ -132,7 +117,7 @@ def bin_supplements_by_constraints(ingreds: list[IngredientResponse]) -> BinList
     """
     bins[0] is breakfast, bins[1] is lunch, bins[2] is dinner.
     """
-    bins: BinList = [set(), set(), set()]
+    bins: BinList = [[], [], []]
 
     # fmt: off
     sorted_ingreds = sorted(
@@ -165,25 +150,9 @@ def bin_supplements_by_constraints(ingreds: list[IngredientResponse]) -> BinList
             target_index = conflict_counts.index(min_conflicts)
 
         ingred.DEV_conflict_count = min_conflicts
-        bins[target_index].add(ingred)
+        bins[target_index].append(ingred)
 
     return bins
-
-
-def get_response_ingredients_from_bin(
-    bin: Bin,
-) -> list[IngredientInResponse]:
-    ingredients_result = [
-        IngredientInResponse(
-            name=sup.name,
-            DEV_conflict_count=sup.DEV_conflict_count,
-            constraints=IngredientAttributes(
-                before_after_food=sup.before_after_food, take_not_with=sup.take_not_with
-            ),
-        )
-        for sup in bin
-    ]
-    return ingredients_result
 
 
 def get_total_conflict_count(before: BinList, after: BinList) -> int:
@@ -200,12 +169,12 @@ def transform_to_response(before: BinList, after: BinList) -> SupplementPlanResp
     response = SupplementPlanResponse(
         DEV_total_conflict_count=get_total_conflict_count(before, after),
         schedule=TimeSlots(
-            before_breakfast=get_response_ingredients_from_bin(before[0]),
-            before_lunch=get_response_ingredients_from_bin(before[1]),
-            before_dinner=get_response_ingredients_from_bin(before[2]),
-            after_breakfast=get_response_ingredients_from_bin(after[0]),
-            after_lunch=get_response_ingredients_from_bin(after[1]),
-            after_dinner=get_response_ingredients_from_bin(after[2]),
+            before_breakfast=before[0],
+            before_lunch=before[1],
+            before_dinner=before[2],
+            after_breakfast=after[0],
+            after_lunch=after[1],
+            after_dinner=after[2],
         ),
     )
     return response
