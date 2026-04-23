@@ -25,7 +25,7 @@ class BeforeAfterFood(str, Enum):
 
 class IngredientAttributes(BaseModel):
     take_not_with: set[str] = set()
-    before_after_food: Literal["before", "after"]
+    before_after_food: BeforeAfterFood
 
 
 class IngredientInRequest(BaseModel):
@@ -40,6 +40,13 @@ class IngredientResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+    def __hash__(self):
+        return hash(self.name)
+
+    def __eq__(self, other):
+        result = isinstance(other, IngredientResponse) and self.name == other.name
+        return result
 
 
 class IngredientInResponse(BaseModel):

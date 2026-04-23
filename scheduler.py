@@ -58,7 +58,7 @@ async def get_relevant_ingred_obj_from_valid_name(
 
 async def apply_constraints_to_sups(
     request: list[IngredientInRequest], db_conn: AsyncSession
-) -> tuple[list[Ingredient], list[str]]:
+) -> tuple[list[IngredientResponse], list[str]]:
     ingred_names_in_request = [ingred.name for ingred in request]
     ingred_objects_from_request = []
     names_not_found = []
@@ -73,7 +73,7 @@ async def apply_constraints_to_sups(
             print(f"{name} not found in database.")
             names_not_found.append(name)
         else:
-            relevant_ingred_obj = get_relevant_ingred_obj_from_valid_name(
+            relevant_ingred_obj = await get_relevant_ingred_obj_from_valid_name(
                 request_names=ingred_names_in_request,
                 ing_orm=ingred_in_db,
             )
@@ -173,15 +173,16 @@ def bin_supplements_by_constraints(ingreds: list[IngredientResponse]) -> BinList
 def get_response_ingredients_from_bin(
     bin: Bin,
 ) -> list[IngredientInResponse]:
-    # fmt: off
     ingredients_result = [
         IngredientInResponse(
             name=sup.name,
             DEV_conflict_count=sup.DEV_conflict_count,
-            constraints = IngredientAttributes(before_after_food=sup.before_after_food, )
-        ) for sup in bin
+            constraints=IngredientAttributes(
+                before_after_food=sup.before_after_food, take_not_with=sup.take_not_with
+            ),
+        )
+        for sup in bin
     ]
-    # fmt: on
     return ingredients_result
 
 
