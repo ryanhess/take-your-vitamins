@@ -12,7 +12,15 @@ export default defineConfig({
     },
   },
   server: {
-    port: 3000, // whatever port you want
+    port: 3000,
+    allowedHosts: true,
+    proxy: {
+      "/backend": {
+        target: "http://localhost:8000",
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/backend/, ""),
+      },
+    },
   },
 
   // File types to support raw imports. Never add .css, .tsx, or .ts files to this.

@@ -106,7 +106,7 @@ const validSupplementNames = [
 
 const URLS = {
   backend: (() => {
-    const base = "http://localhost:8000";
+    const base = "/backend";
     return {
       getSchedule: `${base}/`,
     };
