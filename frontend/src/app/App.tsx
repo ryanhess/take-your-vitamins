@@ -2,6 +2,13 @@ import { useState, useRef, useEffect } from "react";
 import { X, Menu } from "lucide-react";
 import herbsImage from "../imports/brooke-lark-kXQ3J7_2fpc-unsplash.jpg";
 
+type SupplementResponseType = {
+  name: string;
+  before_after_food: "before" | "after";
+  take_not_with: string[];
+  DEV_conflict_count: number;
+};
+
 type Schedule = {
   before_breakfast: string[];
   after_breakfast: string[];
@@ -107,14 +114,21 @@ const URLS = {
 } as const;
 
 // Mock API: Generate new schedule from a list of vitamins
-async function generateScheduleAPI(vitamins: string[]): Promise<Schedule> {
+async function generateScheduleAPI(
+  vitamins: Record<string, string>[],
+): Promise<any | null> {
+  const requestJSON = JSON.stringify(vitamins);
   const response = await fetch(URLS.backend.getSchedule, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ vitamins }),
+    body: requestJSON,
   });
-  const sched: Schedule = await response.json();
-  return sched;
+  if (!response.ok) {
+    const errorBody = await response.json();
+    console.error("generateSchedule failed:", response.status, errorBody);
+    return null;
+  }
+  return response.json();
 }
 
 // Mock API: Update existing schedule
@@ -204,21 +218,41 @@ export default function App() {
     }
   };
 
-  const addVitamin = async (vitamin: string, fromPill: boolean = false) => {
-    // Derive current vitamins from existing schedule
-    const currentVitamins = Object.values(supplementSchedule).flat();
+  const getScheduleFromResponse = (resp: any): Schedule => {
+    const scheduleFromResponse = resp.schedule;
+    const responseSchedKVPairs = Object.entries(scheduleFromResponse);
+    const newSchedule: Schedule = Object.fromEntries(
+      responseSchedKVPairs.map(([timeSlot, sups]) => [
+        timeSlot,
+        sups.map((sup: any) => sup.name),
+      ]),
+    );
+    return newSchedule;
+  };
 
-    // Call API to generate new schedule with added vitamin
-    const newSchedule = await generateScheduleAPI([
-      ...currentVitamins,
-      vitamin,
-    ]);
+  const addVitamin = async (
+    newSupplement: string,
+    fromPill: boolean = false,
+  ) => {
+    const currentScheduleNames = Object.values(supplementSchedule).flat();
+
+    const newSupplementNames = [...currentScheduleNames, newSupplement];
+
+    const supplementRequestObjs = newSupplementNames.map((supName) => ({
+      name: supName,
+    }));
+
+    const response = await generateScheduleAPI(supplementRequestObjs);
+    if (!response) return;
+
+    const newSchedule = getScheduleFromResponse(response);
     setSupplementSchedule(newSchedule);
+
     hasEverHadSupplements.current = true;
 
     // Check if the vitamin is in current suggestions and replace it
     const newSuggestions = [...suggestions];
-    const vitaminIndex = newSuggestions.indexOf(vitamin);
+    const vitaminIndex = newSuggestions.indexOf(newSupplement);
 
     if (vitaminIndex !== -1) {
       // Find next available supplement not in selected or current suggestions
@@ -228,9 +262,9 @@ export default function App() {
       while (searchIndex < validSupplementNames.length && !nextSupplement) {
         const candidate = validSupplementNames[searchIndex];
         if (
-          !currentVitamins.includes(candidate) &&
+          !currentScheduleNames.includes(candidate) &&
           !suggestions.includes(candidate) &&
-          candidate !== vitamin
+          candidate !== newSupplement
         ) {
           nextSupplement = candidate;
         }
@@ -411,19 +445,21 @@ export default function App() {
               className={`${theme.card} px-6 py-4 rounded-2xl shadow-md mt-8`}
             >
               {Object.values(supplementSchedule).every(
-                (arr) => arr.length === 0,
+                (timeSlot) => timeSlot.length === 0,
               ) ? (
                 <div className="text-gray-400 italic">
                   Schedule will appear here...
                 </div>
               ) : (
                 Object.entries(supplementSchedule).map(
-                  ([slot, supplements], index, arr) => {
+                  ([slot, supplements], index, scheduleKVPairs) => {
                     if (supplements.length === 0) return null;
 
                     const isLast =
                       index ===
-                      arr.findLastIndex(([_, supps]) => supps.length > 0);
+                      scheduleKVPairs.findLastIndex(
+                        ([_, supps]) => supps.length > 0,
+                      );
 
                     return (
                       <div key={slot}>
