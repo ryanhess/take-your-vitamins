@@ -6,21 +6,28 @@ RUN_DB = @docker compose up database -d && until docker compose exec database pg
 
 dev:
 	$(RUN_DB)
-	$(RUN_DEMO)
+	$(RUN_BACKEND) frontend
 
 run-backend:
 	$(RUN_DB)
 	$(RUN_BACKEND)
 
-dev-tunnel:
+tunnel:
 	$(RUN_DB)
-	$(RUN_DEMO) tunnel
+	$(RUN_BACKEND) frontend tunnel
 
 db-start:
 	$(RUN_DB)
 
 db-sh:
 	@docker compose exec database psql -U postgres -d vitapp
+
+stopall:
+	-pkill -f "uvicorn backend:app" 2>/dev/null
+	-pkill -f "marimo run demo.py" 2>/dev/null
+	-pkill -f "npm run dev" 2>/dev/null
+	-pkill -f "ngrok http" 2>/dev/null
+	docker compose down database
 
 db-stop:
 	docker compose down database
