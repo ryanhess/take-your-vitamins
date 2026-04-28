@@ -2,6 +2,13 @@ import { useState, useRef, useEffect } from "react";
 import { X, Menu } from "lucide-react";
 import herbsImage from "../imports/brooke-lark-kXQ3J7_2fpc-unsplash.jpg";
 
+type SupplementResponseType = {
+  name: string;
+  before_after_food: "before" | "after";
+  take_not_with: string[];
+  DEV_conflict_count: number;
+};
+
 type Schedule = {
   before_breakfast: string[];
   after_breakfast: string[];
@@ -14,8 +21,7 @@ type Schedule = {
 const THEMES = {
   "Soft Linen": {
     bg: "bg-gradient-to-br from-white to-[#f9f6f1]",
-    input:
-      "bg-white border-white focus:border-white focus:ring-0",
+    input: "bg-white border-white focus:border-white focus:ring-0",
     suggestion: "bg-[#f0ebe3] text-[#5a4f42]",
     card: "bg-[#ffffff] border-[#e8e0d5]",
     text: "text-[#5a4f42]",
@@ -98,90 +104,35 @@ const validSupplementNames = [
   "MSM",
 ];
 
+const URLS = {
+  backend: (() => {
+    const base = "http://localhost:8000";
+    return {
+      getSchedule: `${base}/`,
+    };
+  })(),
+} as const;
+
 // Mock API: Generate new schedule from a list of vitamins
 async function generateScheduleAPI(
-  vitamins: string[],
-): Promise<Schedule> {
-  // TODO: Replace with real API call
-  // const response = await fetch('/api/schedule/generate', {
-  //   method: 'POST',
-  //   headers: { 'Content-Type': 'application/json' },
-  //   body: JSON.stringify({ vitamins })
-  // });
-  // return response.json();
-
-  const vitaminToSlot: Record<string, keyof Schedule> = {
-    "Vitamin A": "after_breakfast",
-    "Vitamin B1": "after_breakfast",
-    "Vitamin B2": "after_breakfast",
-    "Vitamin B3": "after_breakfast",
-    "Vitamin B5": "after_breakfast",
-    "Vitamin B6": "after_breakfast",
-    "Vitamin B7": "after_breakfast",
-    "Vitamin B9": "after_breakfast",
-    "Vitamin B12": "after_lunch",
-    "Vitamin C": "after_breakfast",
-    "Vitamin D": "before_breakfast",
-    "Vitamin D3": "before_breakfast",
-    "Vitamin E": "after_breakfast",
-    "Vitamin K": "after_breakfast",
-    "Vitamin K2": "after_breakfast",
-    Calcium: "before_breakfast",
-    Iron: "after_lunch",
-    Magnesium: "before_lunch",
-    Zinc: "after_breakfast",
-    Potassium: "after_breakfast",
-    Selenium: "after_breakfast",
-    Copper: "after_breakfast",
-    Manganese: "after_breakfast",
-    Chromium: "after_breakfast",
-    Molybdenum: "after_breakfast",
-    Iodine: "after_breakfast",
-    "Omega-3": "before_breakfast",
-    "Fish Oil": "before_breakfast",
-    CoQ10: "after_breakfast",
-    Probiotics: "before_breakfast",
-    Collagen: "before_breakfast",
-    Ashwagandha: "after_dinner",
-    Turmeric: "after_breakfast",
-    Curcumin: "after_breakfast",
-    Ginseng: "after_breakfast",
-    "Ginkgo Biloba": "after_breakfast",
-    Echinacea: "after_breakfast",
-    "St. John's Wort": "after_breakfast",
-    Melatonin: "after_dinner",
-    "L-Theanine": "after_dinner",
-    Creatine: "after_breakfast",
-    "Protein Powder": "after_breakfast",
-    BCAA: "after_breakfast",
-    Glucosamine: "after_breakfast",
-    Chondroitin: "after_breakfast",
-    MSM: "after_breakfast",
-  };
-
-  const schedule: Schedule = {
-    before_breakfast: [],
-    after_breakfast: [],
-    before_lunch: [],
-    after_lunch: [],
-    before_dinner: [],
-    after_dinner: [],
-  };
-
-  vitamins.forEach((vitamin) => {
-    const slot = vitaminToSlot[vitamin];
-    if (slot) {
-      schedule[slot].push(vitamin);
-    }
+  vitamins: Record<string, string>[],
+): Promise<any | null> {
+  const requestJSON = JSON.stringify(vitamins);
+  const response = await fetch(URLS.backend.getSchedule, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: requestJSON,
   });
-
-  return schedule;
+  if (!response.ok) {
+    const errorBody = await response.json();
+    console.error("generateSchedule failed:", response.status, errorBody);
+    return null;
+  }
+  return response.json();
 }
 
 // Mock API: Update existing schedule
-async function updateScheduleAPI(
-  schedule: Schedule,
-): Promise<void> {
+async function updateScheduleAPI(schedule: Schedule): Promise<void> {
   // TODO: Replace with real API call
   // await fetch('/api/schedule/update', {
   //   method: 'PUT',
@@ -194,23 +145,20 @@ async function updateScheduleAPI(
 
 export default function App() {
   const [input, setInput] = useState("");
-  const [supplementSchedule, setSupplementSchedule] =
-    useState<Schedule>({
-      before_breakfast: [],
-      after_breakfast: [],
-      before_lunch: [],
-      after_lunch: [],
-      before_dinner: [],
-      after_dinner: [],
-    });
+  const [supplementSchedule, setSupplementSchedule] = useState<Schedule>({
+    before_breakfast: [],
+    after_breakfast: [],
+    before_lunch: [],
+    after_lunch: [],
+    before_dinner: [],
+    after_dinner: [],
+  });
   const [suggestions, setSuggestions] = useState<string[]>(
     validSupplementNames.slice(0, 3),
   );
-  const [suggestionStartIndex, setSuggestionStartIndex] =
-    useState(3);
+  const [suggestionStartIndex, setSuggestionStartIndex] = useState(3);
   const [highlightedIndex, setHighlightedIndex] = useState(0);
-  const [autocompleteSuggestion, setAutocompleteSuggestion] =
-    useState("");
+  const [autocompleteSuggestion, setAutocompleteSuggestion] = useState("");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const hasEverHadSupplements = useRef(false);
@@ -239,9 +187,7 @@ export default function App() {
     const timer = setTimeout(() => {
       if (input.trim()) {
         const filtered = validSupplementNames
-          .filter((supp) =>
-            supp.toLowerCase().includes(input.toLowerCase()),
-          )
+          .filter((supp) => supp.toLowerCase().includes(input.toLowerCase()))
           .slice(0, 3);
         setSuggestions(filtered);
         setHighlightedIndex(0);
@@ -272,41 +218,53 @@ export default function App() {
     }
   };
 
+  const getScheduleFromResponse = (resp: any): Schedule => {
+    const scheduleFromResponse = resp.schedule;
+    const responseSchedKVPairs = Object.entries(scheduleFromResponse);
+    const newSchedule: Schedule = Object.fromEntries(
+      responseSchedKVPairs.map(([timeSlot, sups]) => [
+        timeSlot,
+        sups.map((sup: any) => sup.name),
+      ]),
+    );
+    return newSchedule;
+  };
+
   const addVitamin = async (
-    vitamin: string,
+    newSupplement: string,
     fromPill: boolean = false,
   ) => {
-    // Derive current vitamins from existing schedule
-    const currentVitamins = Object.values(
-      supplementSchedule,
-    ).flat();
+    const currentScheduleNames = Object.values(supplementSchedule).flat();
 
-    // Call API to generate new schedule with added vitamin
-    const newSchedule = await generateScheduleAPI([
-      ...currentVitamins,
-      vitamin,
-    ]);
+    const newSupplementNames = [...currentScheduleNames, newSupplement];
+
+    const supplementRequestObjs = newSupplementNames.map((supName) => ({
+      name: supName,
+    }));
+
+    const response = await generateScheduleAPI(supplementRequestObjs);
+    if (!response) return;
+
+    const newSchedule = getScheduleFromResponse(response);
     setSupplementSchedule(newSchedule);
+
     hasEverHadSupplements.current = true;
 
     // Check if the vitamin is in current suggestions and replace it
     const newSuggestions = [...suggestions];
-    const vitaminIndex = newSuggestions.indexOf(vitamin);
+    const vitaminIndex = newSuggestions.indexOf(newSupplement);
 
     if (vitaminIndex !== -1) {
       // Find next available supplement not in selected or current suggestions
       let nextSupplement = null;
       let searchIndex = suggestionStartIndex;
 
-      while (
-        searchIndex < validSupplementNames.length &&
-        !nextSupplement
-      ) {
+      while (searchIndex < validSupplementNames.length && !nextSupplement) {
         const candidate = validSupplementNames[searchIndex];
         if (
-          !currentVitamins.includes(candidate) &&
+          !currentScheduleNames.includes(candidate) &&
           !suggestions.includes(candidate) &&
-          candidate !== vitamin
+          candidate !== newSupplement
         ) {
           nextSupplement = candidate;
         }
@@ -332,9 +290,7 @@ export default function App() {
     // Optimistically update UI
     const newSchedule = {
       ...supplementSchedule,
-      [slot]: supplementSchedule[slot].filter(
-        (v) => v !== vitamin,
-      ),
+      [slot]: supplementSchedule[slot].filter((v) => v !== vitamin),
     };
     setSupplementSchedule(newSchedule);
 
@@ -422,11 +378,8 @@ export default function App() {
           >
             Vitamin Scheduler
           </h1>
-          <p
-            className={`${theme.text} text-center mb-8 italic`}
-          >
-            Enter your supplements and a schedule will appear
-            below.
+          <p className={`${theme.text} text-center mb-8 italic`}>
+            Enter your supplements and a schedule will appear below.
           </p>
 
           <div className="relative">
@@ -492,33 +445,30 @@ export default function App() {
               className={`${theme.card} px-6 py-4 rounded-2xl shadow-md mt-8`}
             >
               {Object.values(supplementSchedule).every(
-                (arr) => arr.length === 0,
+                (timeSlot) => timeSlot.length === 0,
               ) ? (
                 <div className="text-gray-400 italic">
                   Schedule will appear here...
                 </div>
               ) : (
                 Object.entries(supplementSchedule).map(
-                  ([slot, supplements], index, arr) => {
+                  ([slot, supplements], index, scheduleKVPairs) => {
                     if (supplements.length === 0) return null;
 
                     const isLast =
                       index ===
-                      arr.findLastIndex(
+                      scheduleKVPairs.findLastIndex(
                         ([_, supps]) => supps.length > 0,
                       );
 
                     return (
                       <div key={slot}>
-                        <h3
-                          className={`${theme.text} font-bold text-lg mb-2`}
-                        >
+                        <h3 className={`${theme.text} font-bold text-lg mb-2`}>
                           {slot
                             .split("_")
                             .map(
                               (word) =>
-                                word.charAt(0).toUpperCase() +
-                                word.slice(1),
+                                word.charAt(0).toUpperCase() + word.slice(1),
                             )
                             .join(" ")}
                         </h3>
@@ -544,9 +494,7 @@ export default function App() {
                             </div>
                           ))}
                         </div>
-                        {!isLast && (
-                          <div className="mb-6"></div>
-                        )}
+                        {!isLast && <div className="mb-6"></div>}
                       </div>
                     );
                   },
