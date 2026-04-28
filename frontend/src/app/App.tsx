@@ -106,7 +106,8 @@ const validSupplementNames = [
 
 const URLS = {
   backend: (() => {
-    const base = "http://localhost:8000";
+    // relative url, intercepted by a Vite reverse-proxy to resolve to the true backend server URL.
+    const base = "/backend";
     return {
       getSchedule: `${base}/`,
     };
