@@ -9,17 +9,18 @@ __marimo__/
 __pycache__/
 
 # Frontend
-
-## Next.js
-.next/
-out/
+## deps
 node_modules/
+
+## Logging
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
-*.tsbuildinfo
-next-env.d.ts
 
-## Vite (delete after migration to next)
+## TS
+*.tsbuildinfo
+
+## Vite
 dist/
+vite-env.d.ts
