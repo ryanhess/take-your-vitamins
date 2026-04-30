@@ -131,3 +131,30 @@ class IngredientConflicts(OrmBase):
     id_b: Mapped[int] = mapped_column(
         ForeignKey("ingredients.id", ondelete="CASCADE"), nullable=False
     )
+
+
+class TimeSlotNames(str, Enum):
+    before_breakfast = "Before Breakfast"
+    after_breakfast = "After Breakfast"
+    before_lunch = "Before Lunch"
+    after_lunch = "After Lunch"
+    before_dinner = "Before Dinner"
+    after_dinner = "After Dinner"
+
+
+class IngredientInSchedule(OrmBase):
+    __tablename__ = "ingredients_in_schedule"
+    id: Mapped[int] = mapped_column(Identity(always=True), primary_key=True)
+    ingredient_id: Mapped[int] = mapped_column(
+        ForeignKey("ingredients.id", ondelete="CASCADE"), nullable=False
+    )
+    schedule_id: Mapped[int] = mapped_column(
+        ForeignKey("schedules.id", ondelete="CASCADE"), nullable=False
+    )
+    slot: Mapped[TimeSlotNames] = mapped_column(SqlAlchEnum(TimeSlotNames))
+
+
+class SupplementSchedule(OrmBase):
+    __tablename__ = "schedules"
+    id: Mapped[int] = mapped_column(Identity(always=True), primary_key=True)
+    user_id: Mapped[int] = mapped_column(default=1)
