@@ -2,6 +2,7 @@ from exceptions import ResourceNotFound
 from models import (
     IngredientInSchedule,
     IngredientOrm,
+    IngredientResponse,
     SupplementSchedule,
     TimeSlots,
 )
@@ -36,7 +37,22 @@ def _ingred_id_set_from_ingreds(ingreds: list[IngredientInSchedule]) -> set[int]
 class Schedule:
     @staticmethod
     async def get(sched_id: int, db: AsyncSession) -> TimeSlots:
-        return TimeSlots()
+        query = """
+        """
+
+        query_result = await db.execute(text(query), {"id": sched_id})
+        rows = query_result.mappings().all()
+        schedule_slots = TimeSlots()
+
+        for row in rows:
+            ingredient = IngredientResponse(
+                name=row["ingredient_name"], before_after_food=row["before_after_food"]
+            )
+            slot_name = row["slot"]
+            slot_in_schedule = getattr(schedule_slots, slot_name)
+            slot_in_schedule.append(ingredient)
+
+        return schedule_slots
 
     @staticmethod
     async def update(sched_id: int, updated_sched: TimeSlots, db: AsyncSession) -> None:
