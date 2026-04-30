@@ -118,12 +118,12 @@ class IngredientConflicts(OrmBase):
 
 
 class TimeSlotNames(str, Enum):
-    before_breakfast = "Before Breakfast"
-    after_breakfast = "After Breakfast"
-    before_lunch = "Before Lunch"
-    after_lunch = "After Lunch"
-    before_dinner = "Before Dinner"
-    after_dinner = "After Dinner"
+    before_breakfast = "before_breakfast"
+    after_breakfast = "after_breakfast"
+    before_lunch = "before_lunch"
+    after_lunch = "after_lunch"
+    before_dinner = "before_dinner"
+    after_dinner = "after_dinner"
 
 
 class IngredientInSchedule(OrmBase):
