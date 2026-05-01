@@ -2,7 +2,7 @@ from typing import AsyncGenerator
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from crud import Schedule
-import pytest
+from pytest import fixture, raises
 from models import (
     IngredientInSchedule,
     IngredientOrm,
@@ -12,9 +12,10 @@ from models import (
     BeforeAfterFood,
     TimeSlots,
 )
+from exceptions import ResourceNotFound
 
 
-@pytest.fixture
+@fixture
 async def seeded_db(db: AsyncSession) -> AsyncGenerator[AsyncSession, None]:
     ingredients = {
         "Vitamin C": BeforeAfterFood.before,
@@ -87,7 +88,7 @@ async def seeded_db(db: AsyncSession) -> AsyncGenerator[AsyncSession, None]:
     yield db
 
 
-@pytest.fixture
+@fixture
 async def id_of_test_sched(db: AsyncSession) -> AsyncGenerator[int | None, None]:
     result = await db.execute(select(SupplementSchedule))
     test_sched = result.scalar_one_or_none()
@@ -97,8 +98,14 @@ async def id_of_test_sched(db: AsyncSession) -> AsyncGenerator[int | None, None]
 
 
 class TestUpdateSchedule:
-    async def test_raises_for_not_found(self) -> None:
-        pass
+    async def test_raises_for_not_found(
+        self, seeded_db: AsyncSession, id_of_test_sched: int
+    ) -> None:
+        assert id_of_test_sched
+        with raises(ResourceNotFound):
+            await Schedule.update(
+                sched_id=id_of_test_sched + 1, updated_sched=TimeSlots(), db=seeded_db
+            )
 
     async def test_raises_for_ingred_not_found(self) -> None:
         pass
@@ -110,7 +117,7 @@ class TestUpdateSchedule:
         pass
 
     async def test_updates_schedule_in_db(
-        self, seeded_db: AsyncSession, id_of_test_sched
+        self, seeded_db: AsyncSession, id_of_test_sched: int
     ) -> None:
         test_ingred_name = "L-Theanine"
         result = await seeded_db.execute(
