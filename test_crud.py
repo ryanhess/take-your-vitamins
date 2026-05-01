@@ -107,8 +107,21 @@ class TestUpdateSchedule:
                 sched_id=id_of_test_sched + 1, updated_sched=TimeSlots(), db=seeded_db
             )
 
-    async def test_raises_for_ingred_not_found(self) -> None:
-        pass
+    async def test_raises_for_ingred_not_found(
+        self, seeded_db: AsyncSession, id_of_test_sched: int
+    ) -> None:
+        new_sched = TimeSlots(
+            before_breakfast=[
+                IngredientResponse(
+                    name="not in the database", before_after_food=BeforeAfterFood.before
+                )
+            ]
+        )
+
+        with raises(ResourceNotFound):
+            await Schedule.update(
+                sched_id=id_of_test_sched, updated_sched=new_sched, db=seeded_db
+            )
 
     async def test_update_with_empty_clears_schedule(self) -> None:
         pass
