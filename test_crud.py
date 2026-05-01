@@ -6,9 +6,11 @@ import pytest
 from models import (
     IngredientInSchedule,
     IngredientOrm,
+    IngredientResponse,
     SupplementSchedule,
     TimeSlotNames,
     BeforeAfterFood,
+    TimeSlots,
 )
 
 
@@ -99,4 +101,35 @@ class TestUpdateSchedule:
         pass
 
     async def test_updates_schedule_in_db(self, seeded_db: AsyncSession) -> None:
-        pass
+        test_ingred_name = "L-Theanine"
+        result = await seeded_db.execute(
+            select(IngredientOrm).where(IngredientOrm.name == test_ingred_name)
+        )
+        test_ingred = result.scalar_one_or_none()
+        assert test_ingred
+
+        result = await seeded_db.execute(select(SupplementSchedule))
+        test_sched = result.scalar_one_or_none()
+        assert test_sched
+        test_sched_id = test_sched.id
+
+        new_sched = TimeSlots(
+            before_breakfast=[
+                IngredientResponse(
+                    name=test_ingred_name, before_after_food=BeforeAfterFood.before
+                )
+            ]
+        )
+        await Schedule.update(
+            sched_id=test_sched_id, updated_sched=new_sched, db=seeded_db
+        )
+
+        result = await seeded_db.execute(
+            select(IngredientInSchedule).where(
+                IngredientInSchedule.schedule_id == test_sched_id
+            )
+        )
+        entries = result.scalars().all()
+
+        assert len(entries) == 1
+        assert entries[0].ingredient_id == test_ingred.id
