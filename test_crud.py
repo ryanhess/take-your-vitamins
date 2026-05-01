@@ -88,6 +88,17 @@ async def seeded_db(db: AsyncSession) -> AsyncGenerator[AsyncSession, None]:
     yield db
 
 
+async def get_test_schedule_entries(
+    id: int, db: AsyncSession
+) -> list[IngredientInSchedule]:
+    result = await db.execute(
+        select(IngredientInSchedule).where(IngredientInSchedule.schedule_id == id)
+    )
+    entries = result.scalars().all()
+    entries_list = list(entries)
+    return entries_list
+
+
 @fixture
 async def id_of_test_sched(db: AsyncSession) -> AsyncGenerator[int | None, None]:
     result = await db.execute(select(SupplementSchedule))
@@ -123,7 +134,10 @@ class TestUpdateSchedule:
                 sched_id=id_of_test_sched, updated_sched=new_sched, db=seeded_db
             )
 
-    async def test_update_with_empty_clears_schedule(self) -> None:
+    async def test_update_with_empty_clears_schedule(
+        self, seeded_db: AsyncSession, id_of_test_sched: int
+    ) -> None:
+
         pass
 
     async def test_idempotent(self) -> None:
@@ -153,12 +167,7 @@ class TestUpdateSchedule:
             sched_id=test_sched_id, updated_sched=new_sched, db=seeded_db
         )
 
-        result = await seeded_db.execute(
-            select(IngredientInSchedule).where(
-                IngredientInSchedule.schedule_id == test_sched_id
-            )
-        )
-        entries = result.scalars().all()
+        entries = await get_test_schedule_entries(id=test_sched_id, db=seeded_db)
 
         assert len(entries) == 1
         assert entries[0].ingredient_id == test_ingred.id
