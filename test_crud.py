@@ -16,7 +16,7 @@ from exceptions import ResourceNotFound
 
 
 @fixture
-async def seeded_db(db: AsyncSession) -> AsyncGenerator[AsyncSession, None]:
+async def seeded_db(seeded_db: AsyncSession) -> AsyncGenerator[AsyncSession, None]:
     ingredients = {
         "Vitamin C": BeforeAfterFood.before,
         "Vitamin B12": BeforeAfterFood.before,
@@ -64,18 +64,18 @@ async def seeded_db(db: AsyncSession) -> AsyncGenerator[AsyncSession, None]:
     ]
 
     for name, before_after in ingredients.items():
-        db.add(IngredientOrm(name=name, before_after_food=before_after))
-    await db.flush()
+        seeded_db.add(IngredientOrm(name=name, before_after_food=before_after))
+    await seeded_db.flush()
 
-    result = await db.execute(select(IngredientOrm))
+    result = await seeded_db.execute(select(IngredientOrm))
     name_to_id = {row.name: row.id for row in result.scalars().all()}
 
     schedule = SupplementSchedule(user_id=1)
-    db.add(schedule)
-    await db.flush()
+    seeded_db.add(schedule)
+    await seeded_db.flush()
 
     for name, slot in schedule_entries:
-        db.add(
+        seeded_db.add(
             IngredientInSchedule(
                 ingredient_id=name_to_id[name],
                 schedule_id=schedule.id,
@@ -83,9 +83,9 @@ async def seeded_db(db: AsyncSession) -> AsyncGenerator[AsyncSession, None]:
             )
         )
 
-    await db.flush()
+    await seeded_db.flush()
 
-    yield db
+    yield seeded_db
 
 
 async def get_test_schedule_entries(
@@ -100,8 +100,8 @@ async def get_test_schedule_entries(
 
 
 @fixture
-async def id_of_test_sched(db: AsyncSession) -> AsyncGenerator[int | None, None]:
-    result = await db.execute(select(SupplementSchedule))
+async def id_of_test_sched(seeded_db: AsyncSession) -> AsyncGenerator[int | None, None]:
+    result = await seeded_db.execute(select(SupplementSchedule))
     test_sched = result.scalar_one_or_none()
     test_sched_id = getattr(test_sched, "id", None)
     print(test_sched_id)
@@ -112,7 +112,7 @@ class TestUpdateSchedule:
     async def test_raises_for_not_found(
         self, seeded_db: AsyncSession, id_of_test_sched: int
     ) -> None:
-        assert id_of_test_sched
+        assert id_of_test_sched is not None
         with raises(ResourceNotFound):
             await Schedule.update(
                 sched_id=id_of_test_sched + 1, updated_sched=TimeSlots(), db=seeded_db
@@ -137,8 +137,16 @@ class TestUpdateSchedule:
     async def test_update_with_empty_clears_schedule(
         self, seeded_db: AsyncSession, id_of_test_sched: int
     ) -> None:
+        new_sched = TimeSlots()
+        await Schedule.update(
+            sched_id=id_of_test_sched, updated_sched=new_sched, db=seeded_db
+        )
 
-        pass
+        test_sched_entries = await get_test_schedule_entries(
+            id=id_of_test_sched, db=seeded_db
+        )
+
+        assert len(test_sched_entries) == 0
 
     async def test_idempotent(self) -> None:
         pass
@@ -152,9 +160,7 @@ class TestUpdateSchedule:
         )
         test_ingred = result.scalar_one_or_none()
         assert test_ingred
-
-        test_sched_id = id_of_test_sched
-        assert test_sched_id
+        assert id_of_test_sched is not None
 
         new_sched = TimeSlots(
             before_breakfast=[
@@ -164,10 +170,10 @@ class TestUpdateSchedule:
             ]
         )
         await Schedule.update(
-            sched_id=test_sched_id, updated_sched=new_sched, db=seeded_db
+            sched_id=id_of_test_sched, updated_sched=new_sched, db=seeded_db
         )
 
-        entries = await get_test_schedule_entries(id=test_sched_id, db=seeded_db)
+        entries = await get_test_schedule_entries(id=id_of_test_sched, db=seeded_db)
 
         assert len(entries) == 1
         assert entries[0].ingredient_id == test_ingred.id

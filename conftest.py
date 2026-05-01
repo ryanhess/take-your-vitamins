@@ -22,7 +22,7 @@ async def engine():
 
 
 @pytest.fixture
-async def db(engine):
+async def seeded_db(engine):
     async with engine.connect() as conn:
         await conn.begin()
         session = AsyncSession(bind=conn, join_transaction_mode="create_savepoint")
