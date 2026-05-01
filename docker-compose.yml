@@ -11,6 +11,18 @@ services:
       POSTGRES_PASSWORD: postgres
     volumes:
       - pgdata:/var/lib/postgresql
+  
+  test_database:
+    image: postgres:18
+    ports:
+      - "5555:5432"
+    environment:
+      POSTGRES_DB: test_vitapp
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - test_pgdata:/var/lib/postgresql
 
 volumes:
   pgdata:
+  test_pgdata:

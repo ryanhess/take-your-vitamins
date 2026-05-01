@@ -7,6 +7,7 @@ root_directory = Path(__file__).resolve().parent
 
 class Env_Vars(BaseSettings):
     DATABASE_URL: str
+    TEST_DATABASE_URL: str
 
     model_config = SettingsConfigDict(
         # Points specifically to root/.env

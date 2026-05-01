@@ -19,6 +19,9 @@ tunnel:
 db-start:
 	$(RUN_DB)
 
+db-start-test:
+	docker compose up test_database -d
+
 db-sh:
 	@docker compose exec database psql -U postgres -d vitapp
 
@@ -30,11 +33,15 @@ stopall:
 	docker compose down database
 
 db-stop:
-	docker compose down database
+	@docker compose down database test_database
 
 db-drop: db-stop
 	docker volume rm -f vitapp_pgdata > /dev/null || true
 	@echo "database container stopped, volume deleted"
+
+db-drop-test: db-stop
+	docker volume rm -f vitapp_test_pgdata > /dev/null || true
+	@echo "test database container stopped, volume deleted"
 
 db-migrate: db-start
 	@uv run alembic upgrade head
