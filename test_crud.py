@@ -87,6 +87,15 @@ async def seeded_db(db: AsyncSession) -> AsyncGenerator[AsyncSession, None]:
     yield db
 
 
+@pytest.fixture
+async def id_of_test_sched(db: AsyncSession) -> AsyncGenerator[int | None, None]:
+    result = await db.execute(select(SupplementSchedule))
+    test_sched = result.scalar_one_or_none()
+    test_sched_id = getattr(test_sched, "id", None)
+    print(test_sched_id)
+    yield test_sched_id
+
+
 class TestUpdateSchedule:
     async def test_raises_for_not_found(self) -> None:
         pass
@@ -100,7 +109,9 @@ class TestUpdateSchedule:
     async def test_idempotent(self) -> None:
         pass
 
-    async def test_updates_schedule_in_db(self, seeded_db: AsyncSession) -> None:
+    async def test_updates_schedule_in_db(
+        self, seeded_db: AsyncSession, id_of_test_sched
+    ) -> None:
         test_ingred_name = "L-Theanine"
         result = await seeded_db.execute(
             select(IngredientOrm).where(IngredientOrm.name == test_ingred_name)
@@ -108,10 +119,8 @@ class TestUpdateSchedule:
         test_ingred = result.scalar_one_or_none()
         assert test_ingred
 
-        result = await seeded_db.execute(select(SupplementSchedule))
-        test_sched = result.scalar_one_or_none()
-        assert test_sched
-        test_sched_id = test_sched.id
+        test_sched_id = id_of_test_sched
+        assert test_sched_id
 
         new_sched = TimeSlots(
             before_breakfast=[
