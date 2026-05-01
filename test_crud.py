@@ -105,7 +105,43 @@ async def id_of_test_sched(seeded_db: AsyncSession) -> AsyncGenerator[int | None
     test_sched = result.scalar_one_or_none()
     test_sched_id = getattr(test_sched, "id", None)
     print(test_sched_id)
+
+    # This is testing the seeding, not the crud operations,
+    # but it is justified because:
+    #   1) it offers a quick diagnosis if seeding should fail
+    #   2) the seeding is specific to this test file
+    #      and this allows a quick verification that things are working.
+    assert id_of_test_sched is not None
+
     yield test_sched_id
+
+
+@fixture
+async def dummy_sched_and_test_ingred_id(
+    seeded_db: AsyncSession, id_of_test_sched: int
+) -> AsyncGenerator[tuple[TimeSlots, int], None]:
+    test_ingred_name = "L-Theanine"
+    result = await seeded_db.execute(
+        select(IngredientOrm).where(IngredientOrm.name == test_ingred_name)
+    )
+    test_ingred = result.scalar_one_or_none()
+
+    # This is testing the seeding, not the crud operations,
+    # but it is justified because:
+    #   1) it offers a quick diagnosis if seeding should fail
+    #   2) the seeding is specific to this test file
+    #      and this allows a quick verification that things are working.
+    assert test_ingred
+
+    new_sched = TimeSlots(
+        before_breakfast=[
+            IngredientResponse(
+                name=test_ingred_name, before_after_food=BeforeAfterFood.before
+            )
+        ]
+    )
+
+    yield new_sched, test_ingred.id
 
 
 class TestUpdateSchedule:
@@ -152,28 +188,18 @@ class TestUpdateSchedule:
         pass
 
     async def test_updates_schedule_in_db(
-        self, seeded_db: AsyncSession, id_of_test_sched: int
+        self,
+        seeded_db: AsyncSession,
+        dummy_sched_and_test_ingred_id: tuple[TimeSlots, int],
+        id_of_test_sched: int,
     ) -> None:
-        test_ingred_name = "L-Theanine"
-        result = await seeded_db.execute(
-            select(IngredientOrm).where(IngredientOrm.name == test_ingred_name)
-        )
-        test_ingred = result.scalar_one_or_none()
-        assert test_ingred
-        assert id_of_test_sched is not None
-
-        new_sched = TimeSlots(
-            before_breakfast=[
-                IngredientResponse(
-                    name=test_ingred_name, before_after_food=BeforeAfterFood.before
-                )
-            ]
-        )
         await Schedule.update(
-            sched_id=id_of_test_sched, updated_sched=new_sched, db=seeded_db
+            sched_id=id_of_test_sched,
+            updated_sched=dummy_sched_and_test_ingred_id[0],
+            db=seeded_db,
         )
 
         entries = await get_test_schedule_entries(id=id_of_test_sched, db=seeded_db)
 
         assert len(entries) == 1
-        assert entries[0].ingredient_id == test_ingred.id
+        assert entries[0].ingredient_id == dummy_sched_and_test_ingred_id[1]
