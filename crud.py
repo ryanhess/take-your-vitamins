@@ -36,7 +36,11 @@ def _ingred_id_set_from_ingreds(ingreds: list[IngredientInSchedule]) -> set[int]
 
 class Schedule:
     @staticmethod
-    async def get(sched_id: int, db: AsyncSession) -> TimeSlots:
+    async def get(sched_id: int, db: AsyncSession) -> TimeSlots | None:
+        sched = await db.get(SupplementSchedule, sched_id)
+        if sched is None:
+            return None
+
         query = """
             WITH schedule_entries AS (
                 SELECT
