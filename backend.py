@@ -1,6 +1,6 @@
 from database import AsyncDb
 from fastapi import FastAPI
-from models import IngredientInRequest, SupplementPlanResponse
+from models import ScheduleRequest, SupplementPlanResponse
 from fastapi.middleware.cors import CORSMiddleware
 import scheduler
 
@@ -18,11 +18,14 @@ app.add_middleware(
 
 @app.post("/")
 async def make_viamin_schedule(
-    supplement_data: list[IngredientInRequest], db: AsyncDb
+    supplement_data: ScheduleRequest, db: AsyncDb
 ) -> SupplementPlanResponse:
     if supplement_data == []:
         return SupplementPlanResponse()
 
-    response_schedule = await scheduler.create_schedule(supplement_data, db)
+    # next PR will propagate the set all the way through.
+    response_schedule = await scheduler.create_schedule(
+        list(supplement_data.supplements), db
+    )
 
     return response_schedule
