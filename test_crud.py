@@ -249,3 +249,14 @@ class TestUpdateSchedule:
 
         assert len(entries) == 1
         assert entries[0].ingredient_id == dummy_sched_and_test_ingred_id[1]
+
+
+class TestGetSchedule:
+    async def test_raises_not_found(self) -> None:
+        pass
+
+    async def test_returns_correct_schedule(self) -> None:
+        pass
+
+    async def test_fetching_empty_sched_returns_empty_sched(self) -> None:
+        pass
