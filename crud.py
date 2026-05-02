@@ -52,11 +52,11 @@ class Schedule:
         )
 
         ingred_ids_in_req = _ingred_id_set_from_ingreds(ingreds_in_new_sched)
-        query = select(IngredientOrm.id).where(IngredientOrm.id.in_(ingred_ids_in_req))
 
+        query = select(IngredientOrm.id).where(IngredientOrm.id.in_(ingred_ids_in_req))
         result = await db.execute(query)
         ingred_ids_in_db = set(result.scalars().all())
-        # ingred_ids_in_db = set()
+
         if len(ingred_ids_in_req) != len(ingred_ids_in_db):
             ingreds_not_found = ingred_ids_in_req - ingred_ids_in_db
             raise ResourceNotFound(IngredientOrm, list(ingreds_not_found))
