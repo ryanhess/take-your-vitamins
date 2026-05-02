@@ -136,7 +136,9 @@ async def dummy_sched_and_test_ingred_id(
     new_sched = TimeSlots(
         before_breakfast=[
             IngredientResponse(
-                name=test_ingred_name, before_after_food=BeforeAfterFood.before
+                id=test_ingred.id,
+                name=test_ingred_name,
+                before_after_food=test_ingred.before_after_food,
             )
         ]
     )
@@ -180,7 +182,9 @@ class TestUpdateSchedule:
         new_sched = TimeSlots(
             before_breakfast=[
                 IngredientResponse(
-                    name="not in the database", before_after_food=BeforeAfterFood.before
+                    id=1000,
+                    name="not in the database",
+                    before_after_food=BeforeAfterFood.before,
                 )
             ]
         )
@@ -210,7 +214,7 @@ class TestUpdateSchedule:
         dummy_sched_and_test_ingred_id: tuple[TimeSlots, int],
         seeded_db: AsyncSession,
     ) -> None:
-        checks = []
+        results = []
         for _ in range(2):
             await Schedule.update(
                 sched_id=id_of_test_sched,
@@ -221,19 +225,12 @@ class TestUpdateSchedule:
             new_sched_in_db = await get_test_schedule_entries_from_db(
                 id=id_of_test_sched, db=seeded_db
             )
-            dummy_sched = dummy_sched_and_test_ingred_id[0]
-            dummy_entries = entries_from_schedule(
-                sched_id=id_of_test_sched, schedule=dummy_sched
-            )
+            results.append(new_sched_in_db)
 
-            checks.append(
-                all(
-                    dummy_entry.id == db_entry.id
-                    for dummy_entry, db_entry in zip(dummy_entries, new_sched_in_db)
-                )
-            )
-
-        assert all(checks)
+        assert all(
+            first_time.id == second_time.id
+            for first_time, second_time in zip(results[0], results[1])
+        )
 
     async def test_updates_schedule_in_db(
         self,
