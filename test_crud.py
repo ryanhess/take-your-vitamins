@@ -1,3 +1,4 @@
+import sched
 from typing import AsyncGenerator
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -169,7 +170,6 @@ class TestUpdateSchedule:
     async def test_raises_for_not_found(
         self, seeded_db: AsyncSession, id_of_test_sched: int
     ) -> None:
-        assert id_of_test_sched is not None
         with raises(ResourceNotFound):
             await Schedule.update(
                 sched_id=id_of_test_sched + 1, updated_sched=TimeSlots(), db=seeded_db
@@ -252,8 +252,14 @@ class TestUpdateSchedule:
 
 
 class TestGetSchedule:
-    async def test_raises_not_found(self) -> None:
-        pass
+    async def test_raises_schedule_not_found(
+        self, seeded_db: AsyncSession, id_of_test_sched: int
+    ) -> None:
+        with raises(ResourceNotFound):
+            await Schedule.get(
+                sched_id=id_of_test_sched + 1,
+                db=seeded_db,
+            )
 
     async def test_returns_correct_schedule(self) -> None:
         pass
