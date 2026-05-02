@@ -104,7 +104,6 @@ async def id_of_test_sched(seeded_db: AsyncSession) -> AsyncGenerator[int | None
     result = await seeded_db.execute(select(SupplementSchedule))
     test_sched = result.scalar_one_or_none()
     test_sched_id = getattr(test_sched, "id", None)
-    print(test_sched_id)
 
     # This is testing the seeding, not the crud operations,
     # but it is justified because:
