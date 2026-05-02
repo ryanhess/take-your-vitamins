@@ -41,7 +41,7 @@ async def get_relevant_ingred_obj_from_valid_name(
 
 
 async def apply_constraints_to_sups(
-    request: list[IngredientInRequest], db_conn: AsyncSession
+    request: set[IngredientInRequest], db_conn: AsyncSession
 ) -> tuple[list[IngredientResponse], list[str]]:
     ingred_names_in_request = [ingred.name for ingred in request]
     ingred_objects_from_request = []
@@ -180,7 +180,7 @@ def transform_to_response(before: BinList, after: BinList) -> SupplementPlanResp
 
 
 async def create_schedule(
-    request: list[IngredientInRequest], db_conn: AsyncSession
+    request: set[IngredientInRequest], db_conn: AsyncSession
 ) -> SupplementPlanResponse:
     (request_sups_with_constraints, names_not_in_db) = await apply_constraints_to_sups(
         request, db_conn

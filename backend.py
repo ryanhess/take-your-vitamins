@@ -23,9 +23,7 @@ async def make_viamin_schedule(
     if supplement_data == []:
         return SupplementPlanResponse()
 
-    # next PR will propagate the set all the way through.
-    response_schedule = await scheduler.create_schedule(
-        list(supplement_data.supplements), db
-    )
+    supplement_set = supplement_data.supplements
+    response_schedule = await scheduler.create_schedule(supplement_set, db)
 
     return response_schedule
