@@ -15,6 +15,37 @@ from models import (
 from exceptions import ResourceNotFound
 
 
+def _entries_from_schedule(
+    sched_id: int, schedule: TimeSlots
+) -> list[IngredientInSchedule]:
+    entries_in_sched = []
+
+    for slot in schedule.__dict__.items():
+        for ingred in slot[1]:
+            # fmt: off
+            new_sched_entry = IngredientInSchedule(
+                ingredient_id=ingred.id,
+                schedule_id=sched_id,
+                slot=slot[0]
+            )
+            # fmt: on
+
+            entries_in_sched.append(new_sched_entry)
+
+    return entries_in_sched
+
+
+async def _get_test_schedule_entries_from_db(
+    id: int, db: AsyncSession
+) -> list[IngredientInSchedule]:
+    result = await db.execute(
+        select(IngredientInSchedule).where(IngredientInSchedule.schedule_id == id)
+    )
+    entries = result.scalars().all()
+    entries_list = list(entries)
+    return entries_list
+
+
 @fixture
 async def seeded_db(seeded_db: AsyncSession) -> AsyncGenerator[AsyncSession, None]:
     ingredients = {
@@ -88,17 +119,6 @@ async def seeded_db(seeded_db: AsyncSession) -> AsyncGenerator[AsyncSession, Non
     yield seeded_db
 
 
-async def get_test_schedule_entries_from_db(
-    id: int, db: AsyncSession
-) -> list[IngredientInSchedule]:
-    result = await db.execute(
-        select(IngredientInSchedule).where(IngredientInSchedule.schedule_id == id)
-    )
-    entries = result.scalars().all()
-    entries_list = list(entries)
-    return entries_list
-
-
 @fixture
 async def id_of_test_sched(seeded_db: AsyncSession) -> AsyncGenerator[int | None, None]:
     result = await seeded_db.execute(select(SupplementSchedule))
@@ -145,26 +165,6 @@ async def dummy_sched_and_test_ingred_id(
     yield new_sched, test_ingred.id
 
 
-def entries_from_schedule(
-    sched_id: int, schedule: TimeSlots
-) -> list[IngredientInSchedule]:
-    entries_in_sched = []
-
-    for slot in schedule.__dict__.items():
-        for ingred in slot[1]:
-            # fmt: off
-            new_sched_entry = IngredientInSchedule(
-                ingredient_id=ingred.id,
-                schedule_id=sched_id,
-                slot=slot[0]
-            )
-            # fmt: on
-
-            entries_in_sched.append(new_sched_entry)
-
-    return entries_in_sched
-
-
 class TestUpdateSchedule:
     async def test_raises_for_not_found(
         self, seeded_db: AsyncSession, id_of_test_sched: int
@@ -201,7 +201,7 @@ class TestUpdateSchedule:
             sched_id=id_of_test_sched, updated_sched=new_sched, db=seeded_db
         )
 
-        test_sched_entries = await get_test_schedule_entries_from_db(
+        test_sched_entries = await _get_test_schedule_entries_from_db(
             id=id_of_test_sched, db=seeded_db
         )
 
@@ -221,7 +221,7 @@ class TestUpdateSchedule:
                 db=seeded_db,
             )
 
-            new_sched_in_db = await get_test_schedule_entries_from_db(
+            new_sched_in_db = await _get_test_schedule_entries_from_db(
                 id=id_of_test_sched, db=seeded_db
             )
             results.append(new_sched_in_db)
@@ -243,7 +243,7 @@ class TestUpdateSchedule:
             db=seeded_db,
         )
 
-        entries = await get_test_schedule_entries_from_db(
+        entries = await _get_test_schedule_entries_from_db(
             id=id_of_test_sched, db=seeded_db
         )
 
