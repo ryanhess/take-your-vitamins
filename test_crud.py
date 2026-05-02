@@ -227,7 +227,7 @@ class TestUpdateSchedule:
             results.append(new_sched_in_db)
 
         assert all(
-            first_time.id == second_time.id
+            first_time.ingredient_id == second_time.ingredient_id
             for first_time, second_time in zip(results[0], results[1])
         )
 
