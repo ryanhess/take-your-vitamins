@@ -28,6 +28,7 @@ class IngredientInRequest(BaseModel):
 
 
 class IngredientResponse(BaseModel):
+    id: int
     name: str
     before_after_food: BeforeAfterFood
     take_not_with: set[str] = set()

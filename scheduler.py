@@ -30,7 +30,7 @@ async def get_relevant_ingred_obj_from_valid_name(
     narrowed_take_not_with_names = take_not_with_names.intersection(request_names)
 
     ingredient_response_dict = {
-        attr: getattr(ing_orm, attr) for attr in ["name", "before_after_food"]
+        attr: getattr(ing_orm, attr) for attr in ["id", "name", "before_after_food"]
     }
     ingredient_response_dict["take_not_with"] = narrowed_take_not_with_names
 
