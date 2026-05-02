@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, model_validator
 from typing import Literal
 
 from enum import Enum
@@ -18,13 +18,28 @@ from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.ext.asyncio import AsyncSession, async_object_session
 
 
+class IngredientInRequest(BaseModel):
+    name: str
+
+    class Config:
+        frozen = True
+
+
+class ScheduleRequest(BaseModel):
+    supplements: set[IngredientInRequest]
+
+    @model_validator(mode="before")
+    @classmethod
+    def no_duplicates(cls, data):
+        names = [item["name"] for item in data["supplements"]]
+        if len(names) != len(set(names)):
+            raise ValueError("duplicate supplement names are not allowed")
+        return data
+
+
 class BeforeAfterFood(str, Enum):
     before = "before"
     after = "after"
-
-
-class IngredientInRequest(BaseModel):
-    name: str
 
 
 class IngredientResponse(BaseModel):

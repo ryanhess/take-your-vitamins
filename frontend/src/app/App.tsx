@@ -118,7 +118,10 @@ const URLS = {
 async function generateScheduleAPI(
   vitamins: Record<string, string>[],
 ): Promise<any | null> {
-  const requestJSON = JSON.stringify(vitamins);
+  const structuredRequest = {
+    supplements: vitamins,
+  };
+  const requestJSON = JSON.stringify(structuredRequest);
   const response = await fetch(URLS.backend.getSchedule, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
