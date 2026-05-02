@@ -29,7 +29,8 @@ def _ingreds_from_time_slots(
 
 
 def _ingred_id_set_from_ingreds(ingreds: list[IngredientInSchedule]) -> set[int]:
-    return set()
+    id_set = {ingred.ingredient_id for ingred in ingreds}
+    return id_set
 
 
 class Schedule:
