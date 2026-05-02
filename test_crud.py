@@ -88,7 +88,7 @@ async def seeded_db(seeded_db: AsyncSession) -> AsyncGenerator[AsyncSession, Non
     yield seeded_db
 
 
-async def get_test_schedule_entries(
+async def get_test_schedule_entries_from_db(
     id: int, db: AsyncSession
 ) -> list[IngredientInSchedule]:
     result = await db.execute(
@@ -144,6 +144,26 @@ async def dummy_sched_and_test_ingred_id(
     yield new_sched, test_ingred.id
 
 
+def entries_from_schedule(
+    sched_id: int, schedule: TimeSlots
+) -> list[IngredientInSchedule]:
+    entries_in_sched = []
+
+    for slot in schedule.__dict__.items():
+        for ingred in slot[1]:
+            # fmt: off
+            new_sched_entry = IngredientInSchedule(
+                ingredient_id=ingred.id,
+                schedule_id=sched_id,
+                slot=slot[0]
+            )
+            # fmt: on
+
+            entries_in_sched.append(new_sched_entry)
+
+    return entries_in_sched
+
+
 class TestUpdateSchedule:
     async def test_raises_for_not_found(
         self, seeded_db: AsyncSession, id_of_test_sched: int
@@ -178,14 +198,42 @@ class TestUpdateSchedule:
             sched_id=id_of_test_sched, updated_sched=new_sched, db=seeded_db
         )
 
-        test_sched_entries = await get_test_schedule_entries(
+        test_sched_entries = await get_test_schedule_entries_from_db(
             id=id_of_test_sched, db=seeded_db
         )
 
         assert len(test_sched_entries) == 0
 
-    async def test_idempotent(self) -> None:
-        pass
+    async def test_idempotent(
+        self,
+        id_of_test_sched: int,
+        dummy_sched_and_test_ingred_id: tuple[TimeSlots, int],
+        seeded_db: AsyncSession,
+    ) -> None:
+        checks = []
+        for _ in range(2):
+            await Schedule.update(
+                sched_id=id_of_test_sched,
+                updated_sched=dummy_sched_and_test_ingred_id[0],
+                db=seeded_db,
+            )
+
+            new_sched_in_db = await get_test_schedule_entries_from_db(
+                id=id_of_test_sched, db=seeded_db
+            )
+            dummy_sched = dummy_sched_and_test_ingred_id[0]
+            dummy_entries = entries_from_schedule(
+                sched_id=id_of_test_sched, schedule=dummy_sched
+            )
+
+            checks.append(
+                all(
+                    dummy_entry.id == db_entry.id
+                    for dummy_entry, db_entry in zip(dummy_entries, new_sched_in_db)
+                )
+            )
+
+        assert all(checks)
 
     async def test_updates_schedule_in_db(
         self,
@@ -199,7 +247,9 @@ class TestUpdateSchedule:
             db=seeded_db,
         )
 
-        entries = await get_test_schedule_entries(id=id_of_test_sched, db=seeded_db)
+        entries = await get_test_schedule_entries_from_db(
+            id=id_of_test_sched, db=seeded_db
+        )
 
         assert len(entries) == 1
         assert entries[0].ingredient_id == dummy_sched_and_test_ingred_id[1]
