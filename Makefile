@@ -41,3 +41,7 @@ db-migrate: db-start
 
 db-gen-mig: db-start db-migrate
 	@uv run alembic revision --autogenerate -m "$(m)"
+
+install:
+	@uv sync &&	cp .env.example .env && direnv allow; \
+	cd frontend; npm install
