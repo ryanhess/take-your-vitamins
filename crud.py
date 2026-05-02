@@ -3,7 +3,7 @@ from models import (
     SupplementSchedule,
     TimeSlots,
 )
-from sqlalchemy import text
+from sqlalchemy import text, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
 
@@ -15,10 +15,11 @@ class Schedule:
     @staticmethod
     async def update(sched_id: int, updated_sched: TimeSlots, db: AsyncSession) -> None:
         sched = await db.get(SupplementSchedule, sched_id)
+
         if sched is None:
             return None
 
-        ingreds_in_sched = []
+        ingreds_in_new_sched = []
 
         for slot in updated_sched.__dict__.items():
             for ingred in slot[1]:
@@ -30,8 +31,11 @@ class Schedule:
                 )
                 # fmt: on
 
-                ingreds_in_sched.append(new_sched_entry)
+                ingreds_in_new_sched.append(new_sched_entry)
 
-        db.add_all(ingreds_in_sched)
+        del_stmt = delete(IngredientInSchedule).where(
+            IngredientInSchedule.schedule_id == sched_id
+        )
+        await db.execute(del_stmt)
+        db.add_all(ingreds_in_new_sched)
         await db.commit()
-        return None
