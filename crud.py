@@ -45,6 +45,7 @@ class Schedule:
             WITH schedule_entries AS (
                 SELECT
                     s.id as schedule_id,
+                    i.id as ingredient_id,
                     i.name as ingredient_name,
                     i.before_after_food as before_after_food,
                     iis.slot as slot
@@ -52,7 +53,7 @@ class Schedule:
                 JOIN ingredients_in_schedule iis ON s.id = iis.schedule_id
                 JOIN ingredients i ON i.id = iis.ingredient_id
             )
-            SELECT ingredient_name, before_after_food, slot
+            SELECT ingredient_id, ingredient_name, before_after_food, slot
             FROM schedule_entries
             WHERE schedule_id = :id
         """
@@ -63,7 +64,9 @@ class Schedule:
         schedule_slots = TimeSlots()
         for row in rows:
             ingredient = IngredientResponse(
-                name=row["ingredient_name"], before_after_food=row["before_after_food"]
+                id=row["ingredient_id"],
+                name=row["ingredient_name"],
+                before_after_food=row["before_after_food"],
             )
             slot_name = row["slot"]
             slot_in_schedule = getattr(schedule_slots, slot_name)
