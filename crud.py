@@ -39,7 +39,9 @@ class Schedule:
     async def get(sched_id: int, db: AsyncSession) -> TimeSlots | None:
         sched = await db.get(SupplementSchedule, sched_id)
         if sched is None:
-            return None
+            raise ResourceNotFound(
+                resource_type=SupplementSchedule, resource_ids=sched_id
+            )
 
         query = """
             WITH schedule_entries AS (
