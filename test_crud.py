@@ -17,7 +17,7 @@ from exceptions import ResourceNotFound
 
 
 @fixture
-async def seeded_db(seeded_db: AsyncSession) -> AsyncGenerator[AsyncSession, None]:
+async def seeded_db(test_db: AsyncSession) -> AsyncGenerator[AsyncSession, None]:
     ingredients = {
         "Vitamin C": BeforeAfterFood.before,
         "Vitamin B12": BeforeAfterFood.before,
@@ -65,18 +65,18 @@ async def seeded_db(seeded_db: AsyncSession) -> AsyncGenerator[AsyncSession, Non
     ]
 
     for name, before_after in ingredients.items():
-        seeded_db.add(IngredientOrm(name=name, before_after_food=before_after))
-    await seeded_db.flush()
+        test_db.add(IngredientOrm(name=name, before_after_food=before_after))
+    await test_db.flush()
 
-    result = await seeded_db.execute(select(IngredientOrm))
+    result = await test_db.execute(select(IngredientOrm))
     name_to_id = {row.name: row.id for row in result.scalars().all()}
 
     schedule = SupplementSchedule(user_id=1)
-    seeded_db.add(schedule)
-    await seeded_db.flush()
+    test_db.add(schedule)
+    await test_db.flush()
 
     for name, slot in schedule_entries:
-        seeded_db.add(
+        test_db.add(
             IngredientInSchedule(
                 ingredient_id=name_to_id[name],
                 schedule_id=schedule.id,
@@ -84,9 +84,9 @@ async def seeded_db(seeded_db: AsyncSession) -> AsyncGenerator[AsyncSession, Non
             )
         )
 
-    await seeded_db.flush()
+    await test_db.flush()
 
-    yield seeded_db
+    yield test_db
 
 
 @fixture
@@ -261,8 +261,18 @@ class TestGetSchedule:
                 db=seeded_db,
             )
 
-    async def test_returns_correct_schedule(self) -> None:
+    async def test_returns_correct_schedule(
+        self, seeded_db: AsyncSession, id_of_test_sched: int
+    ) -> None:
         pass
 
-    async def test_fetching_empty_sched_returns_empty_sched(self) -> None:
-        pass
+    # perform this query on an empty db with no rows.
+    async def test_fetching_empty_sched_returns_empty_sched(
+        self, test_db: AsyncSession
+    ) -> None:
+        empty_sched = SupplementSchedule()
+        test_db.add(empty_sched)
+        await test_db.flush()
+
+        result_sched = await Schedule.get(sched_id=empty_sched.id, db=test_db)
+        assert result_sched == TimeSlots()
