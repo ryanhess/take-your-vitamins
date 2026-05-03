@@ -2,6 +2,7 @@ import sched
 from typing import AsyncGenerator
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from conftest import test_db
 from crud import Schedule
 from pytest import fixture, raises
 from models import (
@@ -166,6 +167,12 @@ async def _get_test_schedule_entries_from_db(
     return entries_list
 
 
+def _slots_as_dict_of_sets_from_entries_list(
+    entries: list[IngredientInSchedule],
+) -> dict[str, set[IngredientResponse]]:
+    return {}
+
+
 class TestUpdateSchedule:
     async def test_raises_for_not_found(
         self, seeded_db: AsyncSession, id_of_test_sched: int
@@ -264,9 +271,19 @@ class TestGetSchedule:
     async def test_returns_correct_schedule(
         self, seeded_db: AsyncSession, id_of_test_sched: int
     ) -> None:
-        pass
+        test_sched_entries = await _get_test_schedule_entries_from_db(
+            id=id_of_test_sched, db=seeded_db
+        )
+        test_sched_slots_dict = _slots_as_dict_of_sets_from_entries_list(
+            entries=test_sched_entries
+        )
+        result_sched = await Schedule.get(sched_id=id_of_test_sched, db=seeded_db)
 
-    # perform this query on an empty db with no rows.
+        for slot_name, result_ingreds in result_sched:
+            test_sched_slot = test_sched_slots_dict[TimeSlotNames(slot_name)]
+            assert test_sched_slot == set(result_ingreds)
+
+    # perform this test on an empty db with no rows.
     async def test_fetching_empty_sched_returns_empty_sched(
         self, test_db: AsyncSession
     ) -> None:
