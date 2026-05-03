@@ -169,8 +169,17 @@ async def _get_test_schedule_entries_from_db(
 
 def _slots_as_dict_of_sets_from_entries_list(
     entries: list[IngredientInSchedule],
-) -> dict[str, set[IngredientResponse]]:
-    return {}
+) -> dict[TimeSlotNames, set[IngredientResponse]]:
+    result = {slot: set() for slot in TimeSlotNames}
+    for entry in entries:
+        slot_name = entry.slot
+        ingred_obj = IngredientResponse(
+            id=entry.ingredient_id,
+            name=entry.ingredient.name,
+            before_after_food=entry.ingredient.before_after_food,
+        )
+        result[slot_name].add(ingred_obj)
+    return result
 
 
 class TestUpdateSchedule:

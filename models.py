@@ -14,7 +14,7 @@ from sqlalchemy import (
     UniqueConstraint,
     text,
 )
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.ext.asyncio import AsyncSession, async_object_session
 
 
@@ -152,6 +152,7 @@ class IngredientInSchedule(OrmBase):
         ForeignKey("schedules.id", ondelete="CASCADE"), nullable=False
     )
     slot: Mapped[TimeSlotNames] = mapped_column(SqlAlchEnum(TimeSlotNames))
+    ingredient: Mapped[IngredientOrm] = relationship(lazy="joined")
 
 
 class SupplementSchedule(OrmBase):
