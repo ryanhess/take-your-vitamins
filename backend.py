@@ -1,5 +1,5 @@
 from database import AsyncDb
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from exceptions import ResourceNotFound
 from models import ScheduleRequest, SupplementPlanResponse, SupplementSchedule
 from fastapi.middleware.cors import CORSMiddleware
@@ -17,6 +17,11 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.exception_handler(ResourceNotFound)
+async def not_found_handler(request: Request, exc: ResourceNotFound):
+    raise HTTPException(status_code=404, detail=str(exc))
 
 
 async def _get_schedule_id_for_user_or_error(user_id: int, db: AsyncDb) -> int:

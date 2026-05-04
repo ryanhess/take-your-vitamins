@@ -39,7 +39,7 @@ class Schedule:
     async def get(sched_id: int, db: AsyncSession) -> TimeSlots:
         sched = await db.get(SupplementSchedule, sched_id)
         if sched is None:
-            raise ResourceNotFound(msg=f"Schedule id {sched_id} not found")
+            raise ResourceNotFound(f"Schedule id {sched_id} not found")
 
         query = """
             WITH schedule_entries AS (
@@ -79,7 +79,7 @@ class Schedule:
         sched = await db.get(SupplementSchedule, sched_id)
 
         if sched is None:
-            raise ResourceNotFound(msg=f"Schedule id {sched_id} not found.")
+            raise ResourceNotFound(f"Schedule id {sched_id} not found.")
 
         ingreds_in_new_sched = _ingreds_from_time_slots(
             sched_id=sched_id, slots=updated_sched
@@ -93,9 +93,7 @@ class Schedule:
 
         if len(ingred_ids_in_req) != len(ingred_ids_in_db):
             ingreds_not_found = ingred_ids_in_req - ingred_ids_in_db
-            raise ResourceNotFound(
-                msg=f"Ingredient id(s) not found: {ingreds_not_found}"
-            )
+            raise ResourceNotFound(f"Ingredient id(s) not found: {ingreds_not_found}")
 
         del_stmt = delete(IngredientInSchedule).where(
             IngredientInSchedule.schedule_id == sched_id
