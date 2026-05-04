@@ -31,8 +31,8 @@ async def make_viamin_schedule(
     return response_schedule
 
 
-@app.get("/schedule/get")
-async def get_schedule_handler(user_id: int, db: AsyncDb) -> SupplementPlanResponse:
+@app.get("/schedule/{user_id}/get")
+async def get_schedule(user_id: int, db: AsyncDb) -> SupplementPlanResponse:
     query = select(SupplementSchedule.id).where(SupplementSchedule.user_id == 1)
     result = await db.execute(query)
     schedule_id = result.scalar_one_or_none()
@@ -42,3 +42,17 @@ async def get_schedule_handler(user_id: int, db: AsyncDb) -> SupplementPlanRespo
     response_schedule = await Schedule.get(sched_id=schedule_id, db=db)
     response = SupplementPlanResponse(schedule=response_schedule)
     return response
+
+
+@app.post(
+    "/schedule/{user_id}/update",
+    status_code=204,
+    responses={
+        404: {"description": "Schedule not found OR Ingredient in schedule not found."},
+        422: {"description": "Validation error"},
+    },
+)
+async def update_schedule(user_id) -> None:
+    """
+    Updates the schedule for the user. Returns 204 on successful update.
+    """
