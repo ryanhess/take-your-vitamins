@@ -24,7 +24,7 @@ async def _get_schedule_id_for_user_or_error(user_id: int, db: AsyncDb) -> int:
     result = await db.execute(query)
     schedule_id = result.scalar_one_or_none()
     if schedule_id is None:
-        raise ResourceNotFound(resource_type=SupplementSchedule, resource_ids=user_id)
+        raise ResourceNotFound(f"No schedule exists for user {user_id}")
 
     return schedule_id
 
