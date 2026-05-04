@@ -1,5 +1,6 @@
 from database import AsyncDb
 from fastapi import FastAPI, HTTPException
+from exceptions import ResourceNotFound
 from models import ScheduleRequest, SupplementPlanResponse, SupplementSchedule
 from fastapi.middleware.cors import CORSMiddleware
 import scheduler
@@ -16,6 +17,16 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+async def _get_schedule_id_for_user_or_error(user_id: int, db: AsyncDb) -> int:
+    query = select(SupplementSchedule.id).where(SupplementSchedule.user_id == 1)
+    result = await db.execute(query)
+    schedule_id = result.scalar_one_or_none()
+    if schedule_id is None:
+        raise ResourceNotFound(resource_type=SupplementSchedule, resource_ids=user_id)
+
+    return schedule_id
 
 
 @app.post("/")
