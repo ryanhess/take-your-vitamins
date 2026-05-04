@@ -34,12 +34,16 @@ def _ingred_id_set_from_ingreds(ingreds: list[IngredientInSchedule]) -> set[int]
     return id_set
 
 
+async def _get_sched(id, db):
+    sched = await db.get(SupplementSchedule, id)
+    if sched is None:
+        raise ResourceNotFound(f"Schedule id {id} not found")
+
+
 class Schedule:
     @staticmethod
     async def get(sched_id: int, db: AsyncSession) -> TimeSlots:
-        sched = await db.get(SupplementSchedule, sched_id)
-        if sched is None:
-            raise ResourceNotFound(f"Schedule id {sched_id} not found")
+        sched = await _get_sched(sched_id, db)
 
         query = """
             WITH schedule_entries AS (
@@ -76,10 +80,7 @@ class Schedule:
 
     @staticmethod
     async def update(sched_id: int, updated_sched: TimeSlots, db: AsyncSession) -> None:
-        sched = await db.get(SupplementSchedule, sched_id)
-
-        if sched is None:
-            raise ResourceNotFound(f"Schedule id {sched_id} not found.")
+        sched = await _get_sched(sched_id, db)
 
         ingreds_in_new_sched = _ingreds_from_time_slots(
             sched_id=sched_id, slots=updated_sched
