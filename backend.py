@@ -44,18 +44,13 @@ async def make_viamin_schedule(
 
 @app.get("/schedule/{user_id}/get")
 async def get_schedule(user_id: int, db: AsyncDb) -> SupplementPlanResponse:
-    query = select(SupplementSchedule.id).where(SupplementSchedule.user_id == 1)
-    result = await db.execute(query)
-    schedule_id = result.scalar_one_or_none()
-    if schedule_id is None:
-        raise HTTPException(status_code=404, detail="Schedule not found for user")
-
+    schedule_id = await _get_schedule_id_for_user_or_error(user_id=user_id, db=db)
     response_schedule = await Schedule.get(sched_id=schedule_id, db=db)
     response = SupplementPlanResponse(schedule=response_schedule)
     return response
 
 
-@app.post(
+@app.put(
     "/schedule/{user_id}/update",
     status_code=204,
     responses={
@@ -63,7 +58,13 @@ async def get_schedule(user_id: int, db: AsyncDb) -> SupplementPlanResponse:
         422: {"description": "Validation error"},
     },
 )
-async def update_schedule(user_id) -> None:
+async def update_schedule(
+    user_id: int, updated_schedule: SupplementPlanResponse, db: AsyncDb
+) -> None:
     """
-    Updates the schedule for the user. Returns 204 on successful update.
+    Replaces the schedule for the user with an updated one. Returns 204 on successful update.
     """
+
+    sched_id = await _get_schedule_id_for_user_or_error(user_id=user_id, db=db)
+    new_sched = updated_schedule.schedule
+    await Schedule.update(sched_id=sched_id, updated_sched=new_sched, db=db)
