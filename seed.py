@@ -3,7 +3,7 @@ from enum import Enum
 
 from sqlalchemy import select, func
 from database import async_session
-from models import OrmBase, IngredientOrm, IngredientConflicts, BeforeAfterFood
+from models import OrmBase, IngredientOrm, IngredientConflicts, BeforeAfterFood, IngredientInSchedule, SupplementSchedule, TimeSlotNames
 
 
 class Dataset(Enum):
@@ -161,9 +161,33 @@ async def seed():
             low, high = sorted([id_a, id_b])
             session.add(IngredientConflicts(id_a=low, id_b=high))
 
+        schedule = SupplementSchedule(user_id=1)
+        session.add(schedule)
+        await session.flush()
+
+        schedule_entries = [
+            ("Vitamin C",       TimeSlotNames.before_breakfast),
+            ("Vitamin B12",     TimeSlotNames.before_breakfast),
+            ("Probiotics",      TimeSlotNames.before_breakfast),
+            ("Vitamin D",       TimeSlotNames.after_breakfast),
+            ("Vitamin A",       TimeSlotNames.after_breakfast),
+            ("Magnesium",       TimeSlotNames.after_lunch),
+            ("Turmeric",        TimeSlotNames.after_lunch),
+            ("Zinc",            TimeSlotNames.before_dinner),
+            ("Fish Oil",        TimeSlotNames.after_dinner),
+            ("Ashwagandha",     TimeSlotNames.after_dinner),
+        ]
+
+        for name, slot in schedule_entries:
+            session.add(IngredientInSchedule(
+                ingredient_id=name_to_id[name],
+                schedule_id=schedule.id,
+                slot=slot,
+            ))
+
         await session.commit()
 
-    print(f"Seeded {len(ingredients)} ingredients and {len(conflicts)} conflicts.")
+    print(f"Seeded {len(ingredients)} ingredients, {len(conflicts)} conflicts, and 1 schedule with {len(schedule_entries)} entries.")
 
 
 if __name__ == "__main__":
